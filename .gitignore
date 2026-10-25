@@ -7,3 +7,11 @@ __pycache__/
 .DS_Store
 !results/
 results/**/test_predictions.npz
+report/*.aux
+report/*.log
+report/*.bbl
+report/*.blg
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz

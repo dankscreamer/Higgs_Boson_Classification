@@ -1,0 +1,23 @@
+\begin{table}[!t]
+\centering
+\caption{Top-10 features of the \texttt{all} set by XGBoost mean $|$SHAP$|$ (log-odds), with logistic-regression $|$coefficients$|$ on standardised inputs.}
+\label{tab:importance_ml}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lcc}
+\toprule
+Feature & XGB $|$SHAP$|$ & LogReg $|\beta|$ \\
+\midrule
+m\_bb & 0.635 & 0.600 \\
+m\_wwbb & 0.514 & 0.996 \\
+m\_wbb & 0.340 & 0.624 \\
+m\_jjj & 0.317 & 0.265 \\
+m\_jlv & 0.276 & 0.204 \\
+jet1\_pt & 0.258 & 0.365 \\
+lepton\_pT & 0.172 & 0.171 \\
+missing\_energy\_magnitude & 0.134 & 0.238 \\
+m\_jj & 0.129 & 0.098 \\
+jet2\_pt & 0.102 & 0.087 \\
+\bottomrule
+\end{tabular}
+\end{table}

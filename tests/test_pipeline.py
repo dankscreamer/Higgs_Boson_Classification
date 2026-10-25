@@ -24,13 +24,14 @@ def test_feature_sets_partition_the_28_columns():
 def test_split_is_stratified_disjoint_and_seeded():
     rng = np.random.default_rng(0)
     labels = (rng.random(50_000) < 0.53).astype(np.int8)
-    tr, va = make_split_indices(labels, 10_000, 0.1, seed=7)
-    assert len(tr) + len(va) == 10_000 and not np.intersect1d(tr, va).size
-    assert abs(labels[tr].mean() - labels.mean()) < 0.005
-    assert abs(labels[va].mean() - labels.mean()) < 0.01
-    tr2, va2 = make_split_indices(labels, 10_000, 0.1, seed=7)
-    assert np.array_equal(tr, tr2) and np.array_equal(va, va2)
-    tr3, _ = make_split_indices(labels, 10_000, 0.1, seed=8)
+    tr, va, ca = make_split_indices(labels, 10_000, 0.1, 0.1, seed=7)
+    assert (len(tr), len(va), len(ca)) == (8_000, 1_000, 1_000)
+    assert len(np.unique(np.concatenate([tr, va, ca]))) == 10_000          # pairwise disjoint
+    for part in (tr, va, ca):
+        assert abs(labels[part].mean() - labels.mean()) < 0.01           # stratified
+    tr2, va2, ca2 = make_split_indices(labels, 10_000, 0.1, 0.1, seed=7)
+    assert np.array_equal(tr, tr2) and np.array_equal(va, va2) and np.array_equal(ca, ca2)
+    tr3, _, _ = make_split_indices(labels, 10_000, 0.1, 0.1, seed=8)
     assert not np.array_equal(tr, tr3)
 
 
@@ -50,13 +51,18 @@ def test_csv_to_array_and_load_splits(tmp_path, monkeypatch):
     arr = csv_to_array(csv, tmp_path / "toy.npy", chunksize=300)
     np.testing.assert_allclose(np.load(arr), raw, rtol=1e-6)
     cfg = {"seed": 3, "data": {"array_path": str(arr), "splits_dir": str(tmp_path / "splits"),
-                                "n_test": 500, "subset_size": 1_000, "val_fraction": 0.2}}
+                                "n_test": 500, "subset_size": 1_000, "val_fraction": 0.2, "cal_fraction": 0.1}}
     s = load_splits(cfg)
-    assert s.X_train.shape == (800, 28) and s.X_val.shape == (200, 28) and s.X_test.shape == (500, 28)
+    assert s.X_train.shape == (700, 28) and s.X_val.shape == (200, 28) and s.X_cal.shape == (100, 28)
+    assert s.X_test.shape == (500, 28)
     np.testing.assert_allclose(s.X_test, raw[-500:, 1:], rtol=1e-6)  # test = last rows, label removed
     np.testing.assert_array_equal(s.y_test, raw[-500:, 0])
-    assert s.features("high")[0].shape == (800, 7)
-    assert (tmp_path / "splits" / "subset_1000_seed3.json").exists()
+    assert [a.shape for a in s.features("high")] == [(700, 7), (200, 7), (100, 7), (500, 7)]
+    gh = s.features("geo_high")
+    assert gh[0].shape == (700, 47)
+    np.testing.assert_array_equal(gh[3][:, -7:], s.X_test[:, 21:])        # masses are the last 7 columns
+    assert feature_names("geo_high")[-7:] == feature_names("high")
+    assert (tmp_path / "splits" / "subset_1000_seed3_val0.2_cal0.1.json").exists()
     s2 = load_splits(cfg)  # reuses saved indices
     np.testing.assert_array_equal(s.X_train, s2.X_train)
 
@@ -129,13 +135,76 @@ def test_models_learn_a_nonlinear_signal(model):
     rng = np.random.default_rng(3)
     X = rng.normal(size=(6_000, 5)).astype(np.float32)
     y = ((X[:, 0] * X[:, 1] + X[:, 2]) > 0).astype(np.int8)
+    mlp = {"hidden": [32, 32], "dropout": 0.0, "lr": 0.01, "weight_decay": 0.0, "batch_size": 256,
+           "max_epochs": 15, "patience": 4, "device": "cpu"}
     params = {
         "logreg": {"C": 1.0, "max_iter": 500},
         "xgboost": {"n_estimators": 200, "learning_rate": 0.1, "max_depth": 4, "subsample": 1.0,
                     "colsample_bytree": 1.0, "early_stopping_rounds": 20, "n_jobs": 2},
-        "mlp": {"hidden": [32, 32], "dropout": 0.0, "lr": 0.01, "weight_decay": 0.0, "batch_size": 256,
-                "max_epochs": 15, "patience": 4, "device": "cpu"},
+        "mlp": mlp,
+        "widedeep": {**mlp, "n_wide": 2, "wide_hidden": 8},   # last 2 columns take the wide path
     }[model]
     fitted = FITTERS[model](X[:5_000], y[:5_000], X[5_000:], y[5_000:], params, seed=0)
     auc = evaluate(y[5_000:], fitted.predict_proba(X[5_000:]))["roc_auc"]
     assert auc > (0.75 if model == "logreg" else 0.9)
+
+
+def test_delong_matches_sklearn_and_detects_a_real_difference():
+    from sklearn.metrics import roc_auc_score
+    from higgs.stats import auc_table, delong
+    rng = np.random.default_rng(7)
+    y = (rng.random(20_000) < 0.5).astype(int)
+    strong = y + rng.normal(scale=1.0, size=y.size)
+    weak = y + rng.normal(scale=2.0, size=y.size)
+    aucs, cov = delong(np.vstack([strong, weak]), y)
+    np.testing.assert_allclose(aucs, [roc_auc_score(y, strong), roc_auc_score(y, weak)], atol=1e-9)
+    assert cov.shape == (2, 2) and np.all(np.diag(cov) > 0)
+    # Variance agrees with a bootstrap estimate to within ~20%.
+    boot = [roc_auc_score(y[i], strong[i]) for i in (rng.integers(0, y.size, y.size) for _ in range(200))]
+    assert 0.8 < np.var(boot) / cov[0, 0] < 1.25
+    ci, sig = auc_table({"strong": strong, "weak": weak, "strong_copy": strong.copy()}, y)
+    pair = sig.set_index(["a", "b"])
+    assert pair.loc[("strong", "weak"), "p_value"] < 1e-6
+    assert pair.loc[("strong", "strong_copy"), "diff"] == 0
+    assert (ci.auc_lo < ci.auc).all() and (ci.auc < ci.auc_hi).all()
+
+
+def test_calibrators_fix_a_miscalibrated_model_without_changing_ranking():
+    from sklearn.metrics import roc_auc_score
+    from higgs.calibration import CALIBRATORS
+    rng = np.random.default_rng(8)
+    p_true = rng.random(40_000)
+    y = (rng.random(40_000) < p_true).astype(int)
+    p_bad = p_true ** 3                                   # monotone distortion -> badly calibrated
+    raw_ece = expected_calibration_error(y[20_000:], p_bad[20_000:])
+    for name, Cal in CALIBRATORS.items():
+        fixed = Cal().fit(p_bad[:20_000], y[:20_000]).predict(p_bad[20_000:])
+        assert expected_calibration_error(y[20_000:], fixed) < raw_ece / 3, name
+        if name == "platt":
+            assert abs(roc_auc_score(y[20_000:], fixed) - roc_auc_score(y[20_000:], p_bad[20_000:])) < 1e-5  # clipping near 0 adds a few ties
+
+
+def test_stacker_weights_the_informative_model():
+    from higgs.hybrid import Stacker, average
+    rng = np.random.default_rng(9)
+    y = (rng.random(20_000) < 0.5).astype(int)
+    good = 1 / (1 + np.exp(-(2 * (y - 0.5) * 3 + rng.normal(size=y.size))))
+    noise = rng.random(y.size)
+    st = Stacker(["good", "noise"]).fit({"good": good, "noise": noise}, y)
+    w = st.weights()
+    assert w["good"] > 0.5 and abs(w["noise"]) < 0.2
+    assert st.predict({"good": good, "noise": noise}).shape == y.shape
+    np.testing.assert_allclose(average({"a": good, "b": noise}, ["a", "b"]), (good + noise) / 2)
+
+
+@pytest.mark.parametrize("variant", [{}, {"batchnorm": False}, {"activation": "tanh", "init": "default"},
+                                     {"hidden": [16]}])
+def test_mlp_variants_and_widedeep_build_and_run(variant):
+    import torch
+    from higgs.models import MLP, WideDeep
+    p = {"hidden": [32, 32], "dropout": 0.1, **variant}
+    out = MLP(10, p)(torch.randn(8, 10))
+    assert out.shape == (8,)
+    wd = WideDeep(10, {**p, "n_wide": 3, "wide_hidden": 4})
+    assert wd(torch.randn(8, 10)).shape == (8,)
+    assert wd.deep[0].in_features == 7 and wd.wide[0].in_features == 3   # masses bypass the deep tower

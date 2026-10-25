@@ -1,0 +1,31 @@
+\textbf{Why geometry helps trees so much.} A tree can only split on one feature at a time. To use
+$\phi_a-\phi_b$, which also wraps at $\pm\pi$, it must tile the $(\phi_a,\phi_b)$ plane with
+axis-aligned rectangles. Each rectangle costs data, so the approximation is poor at 200k events.
+Supplying $|\Delta\phi|$ and $\Delta R$ turns that staircase into a single split. This is the
+mechanism behind the $+0.064$ gain, and it is consistent with Grinsztajn \emph{et al.}'s observation
+that trees are sensitive to rotations of the input space \cite{grinsztajn2022tree}. That the gain
+exceeds the value of the 7 masses says that much of the information physicists packed into the
+masses is angular.
+
+\textbf{Discrimination is not calibration.} XGBoost's log-loss objective and early stopping on log
+loss make it well calibrated here. That differs from older findings for boosted stumps
+\cite{niculescu2005predicting}. The logistic-regression failure illustrates the general rule that a
+proper scoring rule only guarantees calibration for a well-specified model.
+
+\textbf{Statistical versus practical significance.} With 500k test events, DeLong standard errors
+are $5$--$8\times10^{-4}$, so differences of 0.002 are already ``significant''. We therefore report
+effect sizes, seed-to-seed sd and the number of significant seeds. We only interpret differences
+that are consistent across all seeds and at least several times larger than the seed sd.
+
+\textbf{Limitations.}
+(i)~The data are simulated and the classes are defined by the generator. High AUC shows separability
+of this benchmark, not evidence for the hypothetical particle.
+(ii)~The UCI release contains exact duplicate events (\edaOverlap{} test events also appear in a
+training split). This is under 0.1\% and immaterial to AUC, but documented.
+(iii)~$\Delta R$ is approximate along $\eta$, because $\eta$'s original scale cannot be recovered.
+(iv)~Tuning used 12 random configurations on one seed's training split, so a larger search could
+add a little.
+(v)~At 10.5M events XGBoost reached its 3000-tree cap without early stopping, so that number is a
+lower bound.
+(vi)~The 1M and 10.5M runs shared an 8\,GB machine and ran under memory pressure, so their wall-clock
+times are not used in any compute comparison. All timing claims use the 250k runs.

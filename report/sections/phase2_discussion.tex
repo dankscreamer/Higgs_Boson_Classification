@@ -1,0 +1,37 @@
+\textbf{When does deep learning pay off?} The answer depends on data and representation. At 50k
+events, tuned trees are better on the richer feature sets, while the MLP is barely ahead on raw or
+mass-only inputs. From 250k events upward, the MLP's ability to learn smooth, high-order interactions
+dominates on every feature set, and its advantage is largest exactly where the inputs are least
+processed. This reconciles the tabular-ML literature, where trees often win at typical sizes
+\cite{grinsztajn2022tree,shwartzziv2022tabular}, with the HEP result that networks win on large
+simulated samples \cite{baldi2014searching}. Both hold, in different regimes.
+
+\textbf{Physics knowledge still helps the network.} Encoding the beam's rotational symmetry gives
+the MLP $+0.065$ at 250k, more than the expert masses do, and at 1M it beats the raw+expert set. The
+lesson is to give the network the problem's invariances rather than hand-built summaries.
+Symmetry-aware architectures \cite{komiske2019energyflow} follow the same principle.
+
+\textbf{Is the hybrid worth it?} Stacking yields the best discrimination and calibrated
+probabilities at every budget, at the cost of training both models (about 27\,s at 250k vs.\ 17\,s
+for the MLP alone). Its gain is largest in the mid-data regime (250k), where the two models are
+comparably strong, and vanishes at 10.5M, where the MLP dominates. That is the expected behaviour of
+a stacking ensemble, and the learned weights make it transparent.
+
+\textbf{Technical validation.} The study is designed to be checked, not just run.
+(i)~19 unit tests cover splits, rotation invariance, $\Delta\phi$ wrapping, metrics, DeLong
+(against scikit-learn and a bootstrap), calibration, stacking and every network variant.
+(ii)~The scaler, $\phi$ scale, calibrators and stacker are all fit on non-test splits.
+(iii)~Seeds and subset indices are saved, and re-running a seed reproduces its numbers.
+(iv)~Every claim is a paired test repeated over 3--5 seeds.
+
+\textbf{Limitations.}
+(i)~At 1M and 10.5M the MLP stopped at the 50-epoch cap (best epoch 46--50), and XGBoost at its
+3000-tree cap, so large-budget results are lower bounds.
+(ii)~The 10.5M run is a single seed on two feature sets. Memory limited the 47-feature sets.
+(iii)~The ablations use 3 seeds at 250k only, and the dropout finding suggests a short
+regularisation sweep at each budget.
+(iv)~Training times above 250k were measured under memory pressure and are not compared.
+(v)~The data are simulated; separability is not discovery.
+
+\textbf{Future work.} Dropout 0.3 with a longer epoch budget at 1M+; permutation-invariant
+set networks over the six physics objects; and temperature scaling inside the stacker.

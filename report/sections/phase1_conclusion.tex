@@ -1,0 +1,10 @@
+On a fixed budget of 250k events, tuned XGBoost dominates logistic regression on every
+representation. The 7 expert masses are worth 0.05--0.09 AUC. A symmetry-derived representation
+built only from pairwise angles and $\Delta R$ outperforms those masses ($+0.014$), and combined
+with them gives the best ML model (0.838 vs.\ 0.824 on the paper's feature set). Every one of these
+differences holds in all five seeds under paired DeLong tests. XGBoost is well calibrated, while
+logistic regression is miscalibrated wherever it is misspecified, which only isotonic recalibration
+repairs. SHAP recovers the $h^0\!\to b\bar b$ and top-quark mass peaks unprompted. As data grow
+to 10.5M events, the linear model stays flat, while XGBoost keeps improving, fastest on raw inputs.
+That trend motivates Phase~2: a model that learns smooth interactions directly may need neither the
+masses nor the hand-built geometry.

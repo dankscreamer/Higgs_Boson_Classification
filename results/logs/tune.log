@@ -1,0 +1,76 @@
+[low] tuning on 200,000 training rows x 21 features
+    logreg best {'C': 0.001}
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7254
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7255
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 5, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7193
+    xgb {'subsample': 0.7, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.7136
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7188
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7251
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7252
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 4, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7064
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7271
+    xgb {'subsample': 0.8, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.6} -> cv_auc 0.7173
+    xgb {'subsample': 1.0, 'reg_lambda': 10.0, 'min_child_weight': 5, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7188
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.7160
+    xgboost best {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0}
+[geo] tuning on 200,000 training rows x 40 features
+    logreg best {'C': 0.01}
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7877
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7880
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 5, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7851
+    xgb {'subsample': 0.7, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.7769
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7819
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7882
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7885
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 4, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7675
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7918
+    xgb {'subsample': 0.8, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.6} -> cv_auc 0.7859
+    xgb {'subsample': 1.0, 'reg_lambda': 10.0, 'min_child_weight': 5, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7811
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.7760
+    xgboost best {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0}
+[high] tuning on 200,000 training rows x 7 features
+    logreg best {'C': 10.0}
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7864
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7866
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 5, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7848
+    xgb {'subsample': 0.7, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.7824
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7855
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7868
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7862
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 4, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.7851
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7854
+    xgb {'subsample': 0.8, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.6} -> cv_auc 0.7821
+    xgb {'subsample': 1.0, 'reg_lambda': 10.0, 'min_child_weight': 5, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.7853
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.7857
+    xgboost best {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0}
+[all] tuning on 200,000 training rows x 28 features
+    logreg best {'C': 10.0}
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8196
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8202
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 5, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.8179
+    xgb {'subsample': 0.7, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.8136
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8176
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8204
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.8201
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 4, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.8158
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8195
+    xgb {'subsample': 0.8, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.6} -> cv_auc 0.8178
+    xgb {'subsample': 1.0, 'reg_lambda': 10.0, 'min_child_weight': 5, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8179
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.8171
+    xgboost best {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0}
+[geo_high] tuning on 200,000 training rows x 47 features
+    logreg best {'C': 10.0}
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8326
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8339
+    xgb {'subsample': 0.7, 'reg_lambda': 0.1, 'min_child_weight': 5, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.8308
+    xgb {'subsample': 0.7, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.8246
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8301
+    xgb {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8340
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.8337
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 4, 'learning_rate': 0.05, 'colsample_bytree': 0.8} -> cv_auc 0.8282
+    xgb {'subsample': 1.0, 'reg_lambda': 0.1, 'min_child_weight': 20, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8329
+    xgb {'subsample': 0.8, 'reg_lambda': 1.0, 'min_child_weight': 1, 'max_depth': 10, 'learning_rate': 0.05, 'colsample_bytree': 0.6} -> cv_auc 0.8312
+    xgb {'subsample': 1.0, 'reg_lambda': 10.0, 'min_child_weight': 5, 'max_depth': 6, 'learning_rate': 0.05, 'colsample_bytree': 1.0} -> cv_auc 0.8309
+    xgb {'subsample': 0.7, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 6, 'learning_rate': 0.1, 'colsample_bytree': 1.0} -> cv_auc 0.8293
+    xgboost best {'subsample': 0.8, 'reg_lambda': 10.0, 'min_child_weight': 20, 'max_depth': 8, 'learning_rate': 0.05, 'colsample_bytree': 1.0}
+Wrote /Users/ananyasoni/Downloads/aml_project/Higgs_Boson_Classification/results/tuning/best_params.json

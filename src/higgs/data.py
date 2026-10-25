@@ -47,15 +47,18 @@ FEATURE_SETS: dict[str, list[int]] = {
 
 
 # Engineered sets computed from the raw columns (see higgs/physics.py).
-ENGINEERED_SETS = ["geo"]
+#   geo      = rotation-invariant low-level features + pairwise |dphi| and dR (40, no masses)
+#   geo_high = geo + the 7 expert masses as the LAST 7 columns (47); the wide&deep hybrid relies on that order
+ENGINEERED_SETS = ["geo", "geo_high"]
 ALL_FEATURE_SETS = list(FEATURE_SETS) + ENGINEERED_SETS
 
 
 def feature_names(feature_set: str) -> list[str]:
     """Human-readable names for the columns of a feature set."""
-    if feature_set == "geo":
+    if feature_set in ENGINEERED_SETS:
         from higgs.physics import geometric_features
-        return geometric_features(np.zeros((1, 28), dtype=np.float32), 1.0)[1]
+        names = geometric_features(np.zeros((1, 28), dtype=np.float32), 1.0)[1]
+        return names + (HIGH_LEVEL if feature_set == "geo_high" else [])
     return [FEATURE_NAMES[i - 1] for i in FEATURE_SETS[feature_set]]
 
 
@@ -107,19 +110,24 @@ def open_array(array_path: str | Path) -> np.ndarray:
 
 
 def make_split_indices(
-    pool_labels: np.ndarray, subset_size: int, val_fraction: float, seed: int
-) -> tuple[np.ndarray, np.ndarray]:
-    """Stratified sample of `subset_size` rows from the pool, then a stratified train/val split.
+    pool_labels: np.ndarray, subset_size: int, val_fraction: float, cal_fraction: float, seed: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Stratified sample of `subset_size` rows from the pool, then stratified train/val/cal splits.
 
+    val is used only for early stopping; cal only for post-hoc calibration and the stacking meta-learner,
+    so neither calibrator nor stacker ever sees data that also steered training.
     Returns sorted row indices into the pool. `subset_size >= len(pool_labels)` uses the whole pool.
     """
     idx = np.arange(len(pool_labels))
     if subset_size < len(pool_labels):
         idx, _ = train_test_split(idx, train_size=subset_size, stratify=pool_labels, random_state=seed)
-    train_idx, val_idx = train_test_split(
-        idx, test_size=val_fraction, stratify=pool_labels[idx], random_state=seed
+    # Integer counts: float fractions (0.2 + 0.1 != 0.3) would shift a row between splits.
+    n_val, n_cal = round(val_fraction * len(idx)), round(cal_fraction * len(idx))
+    train_idx, held = train_test_split(
+        idx, test_size=n_val + n_cal, stratify=pool_labels[idx], random_state=seed
     )
-    return np.sort(train_idx), np.sort(val_idx)
+    val_idx, cal_idx = train_test_split(held, test_size=n_cal, stratify=pool_labels[held], random_state=seed)
+    return np.sort(train_idx), np.sort(val_idx), np.sort(cal_idx)
 
 
 @dataclass
@@ -130,18 +138,26 @@ class Splits:
     y_train: np.ndarray
     X_val: np.ndarray
     y_val: np.ndarray
+    X_cal: np.ndarray
+    y_cal: np.ndarray
     X_test: np.ndarray
     y_test: np.ndarray
     manifest: dict
 
-    def features(self, feature_set: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Train/val/test feature matrices for one feature set (engineered ones fit on train only)."""
-        if feature_set == "geo":
+    def features(self, feature_set: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Train/val/cal/test matrices for one feature set (engineered ones fit on train only)."""
+        parts = (self.X_train, self.X_val, self.X_cal, self.X_test)
+        if feature_set in ENGINEERED_SETS:
             from higgs.physics import fit_phi_scale, geometric_features
             scale = fit_phi_scale(self.X_train)
-            return tuple(geometric_features(X, scale)[0] for X in (self.X_train, self.X_val, self.X_test))
+            high = [i - 1 for i in FEATURE_SETS["high"]]
+            out = []
+            for X in parts:
+                G = geometric_features(X, scale)[0]
+                out.append(np.hstack([G, X[:, high]]) if feature_set == "geo_high" else G)
+            return tuple(out)
         cols = [i - 1 for i in FEATURE_SETS[feature_set]]
-        return self.X_train[:, cols], self.X_val[:, cols], self.X_test[:, cols]
+        return tuple(X[:, cols] for X in parts)
 
 
 def load_splits(cfg: dict) -> Splits:
@@ -151,22 +167,22 @@ def load_splits(cfg: dict) -> Splits:
     n_pool = len(data) - d["n_test"]
     subset_size = min(int(d["subset_size"]), n_pool)
     seed = int(cfg["seed"])
+    val_f, cal_f = float(d["val_fraction"]), float(d["cal_fraction"])
 
     splits_dir = Path(d["splits_dir"])
     splits_dir.mkdir(parents=True, exist_ok=True)
-    stem = splits_dir / f"subset_{subset_size}_seed{seed}"
-    idx_path = stem.with_suffix(".npz")
+    stem = f"subset_{subset_size}_seed{seed}_val{val_f:g}_cal{cal_f:g}"   # has dots: no with_suffix
+    idx_path = splits_dir / f"{stem}.npz"
     if idx_path.exists():
         saved = np.load(idx_path)
-        train_idx, val_idx = saved["train"], saved["val"]
+        train_idx, val_idx, cal_idx = saved["train"], saved["val"], saved["cal"]
     else:
         pool_labels = np.asarray(data[:n_pool, 0])
-        train_idx, val_idx = make_split_indices(pool_labels, subset_size, d["val_fraction"], seed)
-        np.savez_compressed(idx_path, train=train_idx, val=val_idx)
+        train_idx, val_idx, cal_idx = make_split_indices(pool_labels, subset_size, val_f, cal_f, seed)
+        np.savez_compressed(idx_path, train=train_idx, val=val_idx, cal=cal_idx)
 
     test = np.asarray(data[n_pool:])
-    train = data[train_idx]
-    val = data[val_idx]
+    train, val, cal = data[train_idx], data[val_idx], data[cal_idx]
 
     def counts(y: np.ndarray) -> dict:
         return {"n": int(len(y)), "signal": int(y.sum()), "signal_fraction": round(float(y.mean()), 5)}
@@ -179,13 +195,15 @@ def load_splits(cfg: dict) -> Splits:
         "index_file": str(idx_path),
         "train": counts(train[:, 0]),
         "val": counts(val[:, 0]),
+        "cal": counts(cal[:, 0]),
         "test": counts(test[:, 0]),
     }
-    stem.with_suffix(".json").write_text(json.dumps(manifest, indent=2))
+    (splits_dir / f"{stem}.json").write_text(json.dumps(manifest, indent=2))
     # Labels are split off here, before any scaling ever sees the data.
     return Splits(
         train[:, 1:], train[:, 0].astype(np.int8),
         val[:, 1:], val[:, 0].astype(np.int8),
+        cal[:, 1:], cal[:, 0].astype(np.int8),
         test[:, 1:], test[:, 0].astype(np.int8),
         manifest,
     )

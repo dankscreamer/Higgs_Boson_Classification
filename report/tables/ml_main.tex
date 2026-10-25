@@ -1,0 +1,23 @@
+\begin{table*}[!t]
+\centering
+\caption{Phase 1 (ML) results at a 250,000-event budget: mean$\pm$sd over 5 seeds, all scored on the same 500k test events. ECE before and after post-hoc calibration on the cal split. Bold: best ROC AUC within the feature set among the models in this table.}
+\label{tab:ml_main}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lcccccccc}
+\toprule
+Features & Model & ROC AUC & PR AUC & Brier & ECE & ECE$_\mathrm{Platt}$ & ECE$_\mathrm{iso}$ & Train s \\
+\midrule
+low (21) & LogReg & 0.5957$\pm$0.0001 & 0.6224$\pm$0.0002 & 0.2418$\pm$0.0000 & 0.0155 & 0.0157 & 0.0054 & 0.1 \\
+low (21) & XGBoost & \textbf{0.7376$\pm$0.0006} & 0.7481$\pm$0.0006 & 0.2064$\pm$0.0002 & 0.0053 & 0.0058 & 0.0072 & 5.1 \\
+geo (40) & LogReg & 0.6298$\pm$0.0001 & 0.6494$\pm$0.0003 & 0.2357$\pm$0.0000 & 0.0079 & 0.0084 & 0.0053 & 0.1 \\
+geo (40) & XGBoost & \textbf{0.8011$\pm$0.0005} & 0.8111$\pm$0.0005 & 0.1812$\pm$0.0002 & 0.0037 & 0.0034 & 0.0081 & 11.6 \\
+high (7) & LogReg & 0.6450$\pm$0.0004 & 0.6168$\pm$0.0006 & 0.2322$\pm$0.0000 & 0.0480 & 0.0483 & 0.0061 & 0.0 \\
+high (7) & XGBoost & \textbf{0.7872$\pm$0.0003} & 0.8050$\pm$0.0003 & 0.1872$\pm$0.0001 & 0.0062 & 0.0051 & 0.0065 & 1.5 \\
+all (28) & LogReg & 0.6842$\pm$0.0002 & 0.6828$\pm$0.0003 & 0.2231$\pm$0.0000 & 0.0242 & 0.0246 & 0.0061 & 0.1 \\
+all (28) & XGBoost & \textbf{0.8235$\pm$0.0006} & 0.8378$\pm$0.0005 & 0.1711$\pm$0.0003 & 0.0053 & 0.0061 & 0.0067 & 4.8 \\
+geo+high (47) & LogReg & 0.6918$\pm$0.0002 & 0.6924$\pm$0.0002 & 0.2206$\pm$0.0000 & 0.0181 & 0.0185 & 0.0064 & 0.2 \\
+geo+high (47) & XGBoost & \textbf{0.8381$\pm$0.0003} & 0.8506$\pm$0.0004 & 0.1638$\pm$0.0001 & 0.0054 & 0.0053 & 0.0078 & 10.4 \\
+\bottomrule
+\end{tabular}
+\end{table*}

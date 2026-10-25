@@ -1,0 +1,27 @@
+{
+  "seed": 4,
+  "subset_size": 250000,
+  "pool_rows": "0..10499999",
+  "test_rows": "10500000..10999999",
+  "index_file": "/Users/ananyasoni/Downloads/aml_project/Higgs_Boson_Classification/data/splits/subset_250000_seed4_val0.1_cal0.1.npz",
+  "train": {
+    "n": 200000,
+    "signal": 105993,
+    "signal_fraction": 0.52996
+  },
+  "val": {
+    "n": 25000,
+    "signal": 13249,
+    "signal_fraction": 0.52996
+  },
+  "cal": {
+    "n": 25000,
+    "signal": 13249,
+    "signal_fraction": 0.52996
+  },
+  "test": {
+    "n": 500000,
+    "signal": 264507,
+    "signal_fraction": 0.52901
+  }
+}

@@ -1,0 +1,100 @@
+Tuned hyperparameters: loaded from /Users/ananyasoni/Downloads/aml_project/Higgs_Boson_Classification/results/tuning/best_params.json
+Loading subset ...
+  train 200,000  val 25,000  cal 25,000  test 500,000
+[logreg | low] training on 200,000 rows x 21 features
+    roc_auc 0.5956  pr_auc 0.6223  ece 0.0155  ece_platt 0.0160  train 0.1s
+[xgboost | low] training on 200,000 rows x 21 features
+    roc_auc 0.7373  pr_auc 0.7479  ece 0.0040  ece_platt 0.0054  train 4.6s
+[mlp | low] training on 200,000 rows x 21 features
+    epoch   1  train_loss 0.6678  val_auc 0.6895
+    epoch  10  train_loss 0.5939  val_auc 0.7431
+    epoch  20  train_loss 0.5726  val_auc 0.7554
+    epoch  30  train_loss 0.5503  val_auc 0.7584
+    epoch  40  train_loss 0.5386  val_auc 0.7598
+    roc_auc 0.7601  pr_auc 0.7691  ece 0.0329  ece_platt 0.0051  train 21.6s
+    stack: roc_auc 0.7653 ece 0.0046 weights {'xgboost': 0.35455741426591325, 'mlp': 0.6239449044451243, 'intercept': -0.0022651079868300913}
+[logreg | geo] training on 200,000 rows x 40 features
+    roc_auc 0.6297  pr_auc 0.6495  ece 0.0076  ece_platt 0.0084  train 0.1s
+[xgboost | geo] training on 200,000 rows x 40 features
+    roc_auc 0.8014  pr_auc 0.8114  ece 0.0034  ece_platt 0.0051  train 12.0s
+[mlp | geo] training on 200,000 rows x 40 features
+    epoch   1  train_loss 0.6482  val_auc 0.7321
+    epoch  10  train_loss 0.5341  val_auc 0.8031
+    epoch  20  train_loss 0.4997  val_auc 0.8170
+    epoch  30  train_loss 0.4632  val_auc 0.8231
+    epoch  40  train_loss 0.4515  val_auc 0.8237
+    roc_auc 0.8257  pr_auc 0.8342  ece 0.0359  ece_platt 0.0032  train 21.5s
+    stack: roc_auc 0.8310 ece 0.0038 weights {'xgboost': 0.37640850994531094, 'mlp': 0.5870194344260968, 'intercept': -2.5197956297353394e-05}
+[logreg | high] training on 200,000 rows x 7 features
+    roc_auc 0.6456  pr_auc 0.6172  ece 0.0488  ece_platt 0.0490  train 0.0s
+[xgboost | high] training on 200,000 rows x 7 features
+    roc_auc 0.7868  pr_auc 0.8046  ece 0.0067  ece_platt 0.0054  train 1.6s
+[mlp | high] training on 200,000 rows x 7 features
+    epoch   1  train_loss 0.5975  val_auc 0.7704
+    epoch  10  train_loss 0.5562  val_auc 0.7862
+    epoch  20  train_loss 0.5489  val_auc 0.7902
+    epoch  30  train_loss 0.5458  val_auc 0.7909
+    epoch  40  train_loss 0.5444  val_auc 0.7913
+    roc_auc 0.7932  pr_auc 0.8112  ece 0.0047  ece_platt 0.0023  train 23.0s
+    stack: roc_auc 0.7936 ece 0.0021 weights {'xgboost': 0.19172163942111098, 'mlp': 0.7962860562646423, 'intercept': -0.01216922707603299}
+[logreg | all] training on 200,000 rows x 28 features
+    roc_auc 0.6845  pr_auc 0.6829  ece 0.0252  ece_platt 0.0243  train 0.1s
+[xgboost | all] training on 200,000 rows x 28 features
+    roc_auc 0.8234  pr_auc 0.8375  ece 0.0056  ece_platt 0.0063  train 5.7s
+[mlp | all] training on 200,000 rows x 28 features
+    epoch   1  train_loss 0.6256  val_auc 0.7639
+    epoch  10  train_loss 0.5180  val_auc 0.8204
+    epoch  20  train_loss 0.4941  val_auc 0.8267
+    epoch  30  train_loss 0.4711  val_auc 0.8299
+    epoch  40  train_loss 0.4570  val_auc 0.8310
+    roc_auc 0.8309  pr_auc 0.8439  ece 0.0272  ece_platt 0.0034  train 19.7s
+    stack: roc_auc 0.8358 ece 0.0051 weights {'xgboost': 0.41530178385909566, 'mlp': 0.5592551373327617, 'intercept': -0.0056332982704980945}
+[logreg | geo_high] training on 200,000 rows x 47 features
+    roc_auc 0.6921  pr_auc 0.6926  ece 0.0188  ece_platt 0.0183  train 0.2s
+[xgboost | geo_high] training on 200,000 rows x 47 features
+    roc_auc 0.8379  pr_auc 0.8500  ece 0.0057  ece_platt 0.0059  train 11.0s
+[mlp | geo_high] training on 200,000 rows x 47 features
+    epoch   1  train_loss 0.6251  val_auc 0.7657
+    epoch  10  train_loss 0.4998  val_auc 0.8277
+    epoch  20  train_loss 0.4698  val_auc 0.8371
+    epoch  30  train_loss 0.4391  val_auc 0.8396
+    roc_auc 0.8410  pr_auc 0.8517  ece 0.0373  ece_platt 0.0029  train 17.1s
+[widedeep | geo_high] training on 200,000 rows x 47 features
+    epoch   1  train_loss 0.6238  val_auc 0.7666
+    epoch  10  train_loss 0.5148  val_auc 0.8221
+    epoch  20  train_loss 0.4851  val_auc 0.8304
+    epoch  30  train_loss 0.4523  val_auc 0.8328
+    epoch  40  train_loss 0.4401  val_auc 0.8321
+    roc_auc 0.8328  pr_auc 0.8416  ece 0.0327  ece_platt 0.0024  train 23.5s
+    stack: roc_auc 0.8501 ece 0.0046 weights {'xgboost': 0.5090862462860174, 'mlp': 0.4534265685529105, 'intercept': 0.013332606921097672}
+DeLong confidence intervals and paired tests ...
+
+   model feature_set  roc_auc  auc_lo  auc_hi  pr_auc    ece  ece_platt  train_seconds
+  logreg         low   0.5956  0.5940  0.5971  0.6223 0.0155     0.0160         0.0502
+ xgboost         low   0.7373  0.7360  0.7387  0.7479 0.0040     0.0054         4.5615
+     mlp         low   0.7601  0.7588  0.7614  0.7691 0.0329     0.0051        21.6353
+   stack         low   0.7653  0.7640  0.7666  0.7741 0.0046        NaN        26.2129
+ average         low   0.7641  0.7628  0.7654  0.7726 0.0085        NaN        26.2129
+  logreg         geo   0.6297  0.6282  0.6312  0.6495 0.0076     0.0084         0.1173
+ xgboost         geo   0.8014  0.8002  0.8026  0.8114 0.0034     0.0051        12.0193
+     mlp         geo   0.8257  0.8246  0.8268  0.8342 0.0359     0.0032        21.4979
+   stack         geo   0.8310  0.8299  0.8322  0.8400 0.0038        NaN        33.5318
+ average         geo   0.8294  0.8283  0.8306  0.8380 0.0104        NaN        33.5318
+  logreg        high   0.6456  0.6441  0.6472  0.6172 0.0488     0.0490         0.0426
+ xgboost        high   0.7868  0.7856  0.7881  0.8046 0.0067     0.0054         1.5784
+     mlp        high   0.7932  0.7920  0.7944  0.8112 0.0047     0.0023        23.0345
+   stack        high   0.7936  0.7924  0.7948  0.8115 0.0021        NaN        24.6306
+ average        high   0.7926  0.7914  0.7939  0.8104 0.0037        NaN        24.6306
+  logreg         all   0.6845  0.6831  0.6860  0.6829 0.0252     0.0243         0.0965
+ xgboost         all   0.8234  0.8222  0.8245  0.8375 0.0056     0.0063         5.6787
+     mlp         all   0.8309  0.8298  0.8320  0.8439 0.0272     0.0034        19.6867
+   stack         all   0.8358  0.8347  0.8369  0.8490 0.0051        NaN        25.3832
+ average         all   0.8355  0.8344  0.8365  0.8486 0.0043        NaN        25.3832
+  logreg    geo_high   0.6921  0.6906  0.6936  0.6926 0.0188     0.0183         0.1829
+ xgboost    geo_high   0.8379  0.8368  0.8390  0.8500 0.0057     0.0059        11.0232
+     mlp    geo_high   0.8410  0.8399  0.8421  0.8517 0.0373     0.0029        17.0693
+widedeep    geo_high   0.8328  0.8317  0.8339  0.8416 0.0327     0.0024        23.5089
+   stack    geo_high   0.8501  0.8491  0.8511  0.8611 0.0046        NaN        28.1074
+ average    geo_high   0.8499  0.8488  0.8509  0.8609 0.0040        NaN        28.1074
+
+Results written to /Users/ananyasoni/Downloads/aml_project/Higgs_Boson_Classification/results/subset250000_seed3

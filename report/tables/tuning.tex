@@ -1,0 +1,18 @@
+\begin{table*}[!t]
+\centering
+\caption{Hyperparameters selected by stratified 3-fold CV on the training split (test untouched).}
+\label{tab:tuning}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccccccc}
+\toprule
+Features & C & CV AUC & depth & $\eta$ & mcw & subs. & colsm. & $\lambda$ & CV AUC \\
+\midrule
+low (21) & 0.001 & 0.5932 & 10 & 0.05 & 20 & 1 & 1 & 0.1 & 0.7271 \\
+geo (40) & 0.01 & 0.6274 & 10 & 0.05 & 20 & 1 & 1 & 0.1 & 0.7918 \\
+high (7) & 10 & 0.6455 & 8 & 0.05 & 20 & 0.8 & 1 & 10 & 0.7868 \\
+all (28) & 10 & 0.6835 & 8 & 0.05 & 20 & 0.8 & 1 & 10 & 0.8204 \\
+geo+high (47) & 10 & 0.6906 & 8 & 0.05 & 20 & 0.8 & 1 & 10 & 0.8340 \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -1,0 +1,297 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figures/}}
+\input{tables/eda_numbers}
+
+\begin{document}
+
+\title{Expert Features versus Learned Geometry for Higgs Signal Detection:\\
+A Calibrated, Statistically Tested Machine-Learning Benchmark\\
+\large Phase 1 --- Machine Learning}
+
+% Fill in every team member's name and affiliation before submission.
+\author{\IEEEauthorblockN{Ananya Soni}
+\IEEEauthorblockA{\textit{Department / Programme} \\
+\textit{Institution}\\
+City, Country}
+}
+
+\maketitle
+
+\begin{abstract}
+We classify simulated proton--proton collision events from the UCI HIGGS dataset as a heavy-Higgs
+signal or a top-pair background. Following the protocol of Baldi \emph{et al.}, every model is
+scored on the same 500{,}000 held-out events, and models are compared at a fixed data budget before
+scaling. Phase~1 studies the machine-learning baselines: logistic regression and gradient-boosted
+trees (XGBoost) trained on the 21 low-level detector measurements, on the 7 physicist-derived
+invariant masses, and on both. We add a physics-motivated feature set built only from the beam's
+rotational symmetry (pairwise $|\Delta\phi|$ and $\Delta R$, no masses). Hyperparameters are chosen
+by cross-validation on training data only. Probabilities are recalibrated on a dedicated split.
+Every AUC carries a DeLong confidence interval, and every claimed difference is a paired DeLong test
+repeated over seeds. Results, calibration, compute cost and SHAP-based interpretation are reported in
+Sections~\ref{sec:results}--\ref{sec:discussion}.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Higgs boson, gradient boosting, feature engineering, calibration, DeLong test, SHAP, high-energy physics
+\end{IEEEkeywords}
+
+%=====================================================================
+\section{Introduction}
+High-energy collisions at the Large Hadron Collider (LHC) produce short-lived particles that decay
+before reaching the detector; experiments infer what happened from the decay products' momenta,
+directions and energy deposits \cite{guest2018deep}. A new particle appears as a small excess of
+\emph{signal} events among a much larger \emph{background} of known processes that leave
+similar-looking final states. Separating them is a binary classification problem, and the
+discovery of the Higgs boson in 2012 \cite{atlas2012observation,cms2012observation} already relied on
+multivariate classifiers.
+
+The HIGGS benchmark \cite{baldi2014searching,uci_higgs} isolates this task. Signal is a
+hypothetical heavy neutral Higgs boson $H^0$ decaying via $H^0\!\to\!W^\mp H^\pm\!\to\!W^\mp W^\pm h^0\!\to\!W^\mp W^\pm b\bar b$.
+Background is top-pair production $t\bar t\!\to\!W^\mp b\,W^\pm\bar b$, which yields the same
+visible objects: one charged lepton, missing transverse momentum from a neutrino, and four jets,
+some of them $b$-tagged. Each event is described by 21 low-level kinematic features and 7 high-level
+invariant masses that physicists designed to reconstruct the intermediate particles.
+
+Baldi \emph{et al.} showed that a deep network trained on the low-level features alone outperformed
+shallow models that had the expert features \cite{baldi2014searching}. Phase~1 of this project asks
+what \emph{classical} machine learning can do, and why:
+\begin{itemize}
+\item \textbf{RQ1.} How much do the expert masses help a linear model and a tree ensemble at a fixed budget?
+\item \textbf{RQ2.} Can a feature set derived only from a physical symmetry, with no mass
+reconstruction, substitute for the expert features?
+\item \textbf{RQ3.} What are the calibration and compute trade-offs, and which features do the models use?
+\end{itemize}
+Our contributions are: (i)~a leakage-controlled, reproducible pipeline with a train/validation/calibration/test protocol;
+(ii)~a data-quality audit that ties every exploratory finding to the underlying physics;
+(iii)~a rotation-invariant geometric feature set; and (iv)~statistically tested comparisons
+(DeLong CIs, paired tests, five seeds) covering discrimination, calibration and cost.
+
+%=====================================================================
+\section{Literature Review}\label{sec:lit}
+\subsection{Machine learning in high-energy physics}
+Multivariate methods, mostly boosted decision trees, have long been standard in collider analyses
+\cite{guest2018deep,radovic2018machine}. Baldi \emph{et al.} \cite{baldi2014searching} released the
+11M-event HIGGS dataset and reported that boosted trees and shallow networks gain substantially from
+the 7 expert features, while a 5-layer network on raw features matched or beat them. The same group
+later showed similar gains for $H\!\to\!\tau^+\tau^-$ \cite{baldi2015tautau}. The 2014 Higgs Machine
+Learning Challenge \cite{adambourdarios2015higgsml} popularised gradient boosting in the field: XGBoost
+was developed and refined there \cite{chen2015higgsboosted}. Later work on jet tagging
+\cite{kasieczka2019toptagging,komiske2019energyflow} builds physical symmetries into the
+representation. That idea motivates our geometric feature set.
+
+\subsection{Gradient boosting and tabular data}
+Gradient boosting fits an additive ensemble of trees by functional gradient descent
+\cite{friedman2001greedy}. XGBoost adds a second-order objective, explicit regularisation and a
+histogram split finder \cite{chen2016xgboost}; LightGBM offers similar speed-ups \cite{ke2017lightgbm}.
+Recent benchmarks find tree ensembles still match or beat deep networks on typical tabular data
+\cite{grinsztajn2022tree,shwartzziv2022tabular}. Grinsztajn \emph{et al.} attribute this partly to
+trees' robustness to uninformative features and to irregular target functions
+\cite{grinsztajn2022tree}. HIGGS is unusual among tabular problems: it is very large and its
+features are smooth physical quantities with known symmetries, which is where neural networks are
+expected to do well. Random search \cite{bergstra2012random} is an efficient tuning baseline.
+
+\subsection{Evaluation and calibration}
+ROC AUC is threshold-free and equals the probability that a random signal event scores above a
+random background event \cite{fawcett2006roc}. PR curves are more informative under class imbalance
+\cite{saito2015precision}. Models can rank well yet produce miscalibrated probabilities.
+Niculescu-Mizil and Caruana showed that boosted trees tend to push probabilities away from 0 and 1,
+while logistic regression is often well calibrated \cite{niculescu2005predicting}. Platt scaling
+\cite{platt1999probabilistic} and isotonic regression \cite{zadrozny2002transforming} are the
+standard post-hoc fixes. All models here share one test set, so their AUC estimates are correlated.
+DeLong's non-parametric method \cite{delong1988comparing}, with the fast algorithm of Sun and Xu
+\cite{sun2014fast}, gives valid paired comparisons.
+
+\subsection{Interpretability}
+SHAP values attribute each prediction additively to the features, with game-theoretic guarantees
+\cite{lundberg2017unified}. TreeSHAP computes them exactly and in polynomial time for tree ensembles
+\cite{lundberg2020local}.
+
+\subsection{Gap addressed}
+Prior HIGGS studies report single-run AUCs without uncertainty, rarely examine calibration, and
+compare raw features against expert features without an intermediate representation. We add
+seed-repeated, DeLong-tested comparisons, explicit calibration analysis, and a symmetry-derived
+middle ground between the two feature sets.
+
+%=====================================================================
+\section{Dataset, Quality and Exploratory Analysis}\label{sec:data}
+\subsection{Source and protocol}
+We use the UCI download \texttt{higgs.zip}. Its single member \texttt{HIGGS.csv.gz} (SHA-256
+\texttt{ea302c18\ldots b698}) is streamed and converted once to an $11\text{M}\times29$ float32
+memory-mapped array. Following \cite{baldi2014searching}, the last 500{,}000 rows form the test set,
+identical for every model and budget. From the remaining 10.5M-row pool we draw a stratified subset
+of $N$ events with an explicit seed ($N=250{,}000$ unless stated). The subset is split 80/10/10 into
+\emph{train} (fitting), \emph{val} (early stopping only) and \emph{cal} (post-hoc calibration and
+stacking only). The label is removed before any transformation, and every transformation is fit on
+training rows only.
+
+\subsection{Data quality}
+On the \edaN-event training split of seed~0 we find no missing or infinite values and no constant
+columns. The signal fraction is \edaSignal, a mild imbalance, which is why PR AUC is reported
+alongside accuracy. The UCI file contains exact duplicate events: \edaDup{} repeat within the
+training split, none with conflicting labels, and \edaOverlap{} of the 500{,}000 test events also
+appear in that training split. This is under 0.1\% of the test set and cannot materially move the
+AUCs. We keep the standard test set so results remain comparable with
+\cite{baldi2014searching}. The features are pre-standardised in the release (unit variance), so
+masses are not in GeV.
+
+\subsection{Physics-grounded checks}
+Fig.~\ref{fig:dist} shows class-conditional distributions ordered by single-feature AUC.
+Three expectations from the physics are confirmed.
+(i)~\emph{Rotational symmetry}: every azimuthal angle $\phi$ is uniform and carries no information
+on its own (single-feature AUC $\approx0.500$), because the collision is symmetric about the beam.
+(ii)~\emph{$b$-tagging is discrete}: each jet's $b$-tag takes three values.
+(iii)~\emph{Mass peaks}: $m_{bb}$, $m_{Wbb}$ and $m_{WWbb}$, the masses of the signal decay chain,
+are visibly narrower for signal. $m_{jj}$, $m_{jjj}$, $m_{\ell\nu}$ and $m_{j\ell\nu}$ reconstruct
+$W$ and top masses, which the $t\bar t$ background also produces, so they peak for both classes.
+Table~\ref{tab:single_auc} shows that no single feature exceeds an AUC of about 0.57, which is why the
+problem needs a multivariate classifier. The correlation matrix (Fig.~\ref{fig:corr}) confirms that
+the expert masses are non-linear functions of the jet momenta (strongest $|r|\approx0.5$ with jet
+$p_T$).
+
+\input{tables/single_auc}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{eda_distributions.png}
+\caption{Signal (orange) and background (blue) densities for all 28 features on the training split,
+ordered by single-feature AUC. Note the flat $\phi$ distributions, the three-valued $b$-tags, and the
+sharper signal peaks of $m_{bb}$, $m_{Wbb}$ and $m_{WWbb}$.}
+\label{fig:dist}
+\end{figure*}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{eda_correlation.png}
+\caption{Pearson correlations. The lines separate low-level (top-left) from expert (bottom-right)
+features. The masses correlate with jet $p_T$ but not with any single angle.}
+\label{fig:corr}
+\end{figure}
+
+%=====================================================================
+\section{Feature Engineering}\label{sec:fe}
+\subsection{Scaling}
+Every feature set is standardised with statistics from the training rows only. Trees are invariant
+to this transformation; for logistic regression it makes the L2 penalty treat all features alike.
+
+\subsection{Symmetry-derived geometric features (\texttt{geo})}
+The physics of a collision is invariant under a common rotation of every object about the beam axis.
+A classifier given absolute angles must learn this invariance from data. We instead re-express
+the event in terms that are invariant by construction. The release standardises $\phi$, which is
+uniform on $[-\pi,\pi]$, so we recover radians with a factor fit on training rows,
+$s=\pi/\max_i|\tilde\phi_i|$, and define for objects $a,b$
+\begin{align}
+|\Delta\phi_{ab}| &= \bigl|\,((\phi_a-\phi_b+\pi)\bmod 2\pi)-\pi\,\bigr| \in [0,\pi],\\
+\Delta R_{ab} &= \sqrt{(\eta_a-\eta_b)^2+\Delta\phi_{ab}^2}.
+\end{align}
+\texttt{geo} keeps the 15 rotation-invariant low-level features ($p_T$, $\eta$, $|E_T^\mathrm{miss}|$,
+$b$-tags), drops the 5 absolute angles, and adds $|\Delta\phi|$ for all 15 pairs of
+\{lepton, $E_T^\mathrm{miss}$, jet$_{1..4}$\} and $\Delta R$ for the 10 pairs that have $\eta$:
+40 features with no invariant masses. A unit test checks that rotating every $\phi$ in an event by
+the same angle leaves all 40 features unchanged. One caveat: $\eta$'s original scale cannot be
+recovered from the release, so $\Delta R$ is exact in $\phi$ but approximate in $\eta$.
+
+\subsection{Feature sets compared}
+\texttt{low} (21 raw), \texttt{geo} (40), \texttt{high} (7 expert masses), \texttt{all}
+(low+high, 28; the set used in \cite{baldi2014searching}), and \texttt{geo+high} (47). The masses are
+placed last in \texttt{geo+high}, which the Phase~2 hybrid relies on.
+
+%=====================================================================
+\section{Theoretical Background}\label{sec:theory}
+\subsection{Logistic regression}
+The model is $p(y{=}1\mid\mathbf x)=\sigma(\mathbf w^\top\mathbf x+b)$. It is fit by minimising the
+L2-penalised log loss
+\begin{equation}
+\mathcal L(\mathbf w)=-\sum_i\bigl[y_i\log p_i+(1-y_i)\log(1-p_i)\bigr]+\tfrac{1}{2C}\|\mathbf w\|^2,
+\end{equation}
+which is convex, so L-BFGS finds the global optimum. The decision boundary is a hyperplane, so the
+log-odds must be \emph{linear} in the inputs. That explains its failure on \texttt{low}. The signal
+lives in quantities such as $|\phi_a-\phi_b|$ or $\sqrt{(p_a+p_b)^2}$, which are not linear in the
+raw coordinates, and a linear function of a uniformly distributed angle cannot express a
+dependence on its \emph{difference} with another angle. Giving the model those non-linear quantities
+directly (\texttt{geo}, \texttt{high}) is therefore expected to help it most. Because log loss is a
+proper scoring rule, the fitted model is close to calibrated whenever it is correctly specified
+\cite{niculescu2005predicting}.
+
+\subsection{Gradient-boosted trees}
+XGBoost \cite{chen2016xgboost} builds $F_M(\mathbf x)=\sum_{m=1}^M\eta f_m(\mathbf x)$ from
+regression trees $f_m$, each fit to a second-order expansion of the loss around the current model.
+With gradients $g_i$ and Hessians $h_i$ of the log loss, a leaf $j$ with instance set $I_j$ gets the
+optimal weight $w_j^*=-\sum_{I_j}g_i/(\sum_{I_j}h_i+\lambda)$. A split's gain is
+\begin{equation}
+\tfrac12\!\left[\tfrac{G_L^2}{H_L+\lambda}+\tfrac{G_R^2}{H_R+\lambda}-\tfrac{(G_L+G_R)^2}{H_L+H_R+\lambda}\right]-\gamma,
+\end{equation}
+where $G,H$ are sums over the left and right children. Trees model interactions up to their depth.
+Each split is axis-aligned, however, so a smooth function of a \emph{difference} of two features must be
+approximated by a staircase of splits. That is costly in data, which our geometric features remove.
+Shrinkage $\eta$, row and column subsampling, $\lambda$, \texttt{min\_child\_weight} and early
+stopping on the val split regularise the ensemble.
+
+\subsection{Metrics}
+ROC AUC equals the Mann--Whitney statistic
+$\hat A=\frac1{mn}\sum_{i\in S}\sum_{j\in B}\mathbb 1[s_i>s_j]$ \cite{fawcett2006roc}. PR AUC (average
+precision) emphasises the signal-rich region \cite{saito2015precision}. Log loss and the Brier score
+$\frac1n\sum(p_i-y_i)^2$ are proper scoring rules that reward both discrimination and calibration.
+Expected calibration error, $\mathrm{ECE}=\sum_b\frac{|B_b|}{n}|\bar y_b-\bar p_b|$ over 15
+equal-width bins, isolates calibration.
+
+\subsection{Post-hoc calibration}
+Platt scaling fits $\sigma(a\,\mathrm{logit}(p)+c)$ \cite{platt1999probabilistic}. It is monotone, so
+AUC is unchanged. Isotonic regression fits any monotone step function \cite{zadrozny2002transforming};
+it is more flexible but needs more data. Both are fit on the cal split only.
+
+\subsection{Statistical comparison}
+DeLong's estimator \cite{delong1988comparing} writes $\hat A$ as a mean of per-event \emph{placement}
+values. This yields the full covariance matrix $\mathbf S$ of $k$ correlated AUCs on the same test
+set. A paired test of $A_a=A_b$ uses $z=(\hat A_a-\hat A_b)/\sqrt{S_{aa}+S_{bb}-2S_{ab}}$. We use the
+$O(n\log n)$ algorithm of \cite{sun2014fast}, validated against a bootstrap in our tests. Because a
+single split can be lucky, every comparison is repeated over five seeds, and we report in how many of
+them it is significant.
+
+%=====================================================================
+\section{Experimental Setup}\label{sec:setup}
+\textbf{Tuning.} On seed~0's training split (test untouched) we run stratified 3-fold CV.
+Logistic regression searches $C\in\{10^{-3},\dots,10\}$ (scaler inside the fold). XGBoost runs a
+seeded random search of 12 configurations over depth, learning rate, \texttt{min\_child\_weight},
+subsampling and $\lambda$, with each fold early-stopped on its own held-out fold. The selection
+criterion is mean CV ROC AUC. Table~\ref{tab:tuning} lists the choices, which are then frozen for all
+seeds and budgets.
+
+\textbf{Runs.} Five seeds (0--4) at $N=250$k: each seed redraws the subset and reseeds the model. All
+models see the same rows within a seed. We then scale to 50k and 1M events (3 seeds each) and to the
+full 10.5M pool (1 seed; \texttt{low} and \texttt{all}).
+
+\textbf{Compute.} Python 3.12 with scikit-learn \cite{pedregosa2011scikit} and XGBoost
+\cite{chen2016xgboost}, on an Apple M3 with 8\,GB RAM. XGBoost uses all CPU cores with \texttt{hist}
+trees.
+Reported times are wall-clock training times including early stopping.
+
+\textbf{Reproducibility.} The seed, budget and every hyperparameter live in one \texttt{config.yaml}.
+Subset indices and class counts are saved per seed. \texttt{make reproduce} reruns the whole study,
+and 19 unit tests (synthetic data, under 10\,s) cover the data splits, feature invariance, metrics,
+DeLong, calibration and models.
+
+\input{tables/tuning}
+
+%=====================================================================
+\section{Results}\label{sec:results}
+\input{sections/phase1_results}
+
+%=====================================================================
+\section{Discussion and Limitations}\label{sec:discussion}
+\input{sections/phase1_discussion}
+
+%=====================================================================
+\section{Conclusion}
+\input{sections/phase1_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\end{document}

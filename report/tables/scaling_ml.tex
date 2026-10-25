@@ -1,0 +1,23 @@
+\begin{table*}[!t]
+\centering
+\caption{Test ROC AUC vs data budget (train+val+cal events); mean$\pm$sd over seeds (3 seeds; 5 at 250k; 1 at 10.5M, \texttt{low}/\texttt{all} only).}
+\label{tab:scaling_ml}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccc}
+\toprule
+Features & Model & 50k & 250k & 1M & 10.5M \\
+\midrule
+low (21) & LogReg & 0.5945$\pm$0.0003 & 0.5957$\pm$0.0001 & 0.5959$\pm$0.0000 & 0.5959 \\
+low (21) & XGBoost & 0.6986$\pm$0.0011 & 0.7376$\pm$0.0006 & 0.7648$\pm$0.0012 & 0.8001 \\
+geo (40) & LogReg & 0.6287$\pm$0.0004 & 0.6298$\pm$0.0001 & 0.6298$\pm$0.0001 & -- \\
+geo (40) & XGBoost & 0.7618$\pm$0.0018 & 0.8011$\pm$0.0005 & 0.8230$\pm$0.0005 & -- \\
+high (7) & LogReg & 0.6442$\pm$0.0017 & 0.6450$\pm$0.0004 & 0.6450$\pm$0.0003 & -- \\
+high (7) & XGBoost & 0.7791$\pm$0.0007 & 0.7872$\pm$0.0003 & 0.7918$\pm$0.0002 & -- \\
+all (28) & LogReg & 0.6835$\pm$0.0006 & 0.6842$\pm$0.0002 & 0.6842$\pm$0.0001 & 0.6844 \\
+all (28) & XGBoost & 0.8073$\pm$0.0007 & 0.8235$\pm$0.0006 & 0.8365$\pm$0.0001 & 0.8507 \\
+geo+high (47) & LogReg & 0.6908$\pm$0.0003 & 0.6918$\pm$0.0002 & 0.6918$\pm$0.0001 & -- \\
+geo+high (47) & XGBoost & 0.8180$\pm$0.0005 & 0.8381$\pm$0.0003 & 0.8528$\pm$0.0003 & -- \\
+\bottomrule
+\end{tabular}
+\end{table*}

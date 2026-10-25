@@ -1,0 +1,15 @@
+a,b,question,n_seeds,diff_mean,diff_sd,seeds_a_better_p05,seeds_b_better_p05,max_p_value
+mlp|low,xgboost|low,DL vs trees on raw measurements,5,0.022565828708077218,0.001105631397792657,5,0,0.0
+mlp|geo,xgboost|geo,DL vs trees on geometric features,5,0.024408852496487565,0.0006230282999016202,5,0,0.0
+mlp|all,xgboost|all,DL vs trees on raw + expert,5,0.007527306523337529,0.0005114512922752889,5,0,1.6404924292713228e-103
+xgboost|geo,xgboost|low,Feature engineering (geo) for trees,5,0.0635300232431129,0.0007918133901041121,5,0,0.0
+mlp|geo,mlp|low,Feature engineering (geo) for the MLP,5,0.06537304703152325,0.0009521966619399654,5,0,0.0
+mlp|geo,mlp|high,Geometry alone vs expert masses (MLP),5,0.03251486755704334,0.0010753843203184902,5,0,0.0
+xgboost|geo,xgboost|high,Geometry alone vs expert masses (XGB),5,0.013928796266290311,0.00040649752605299454,5,0,2.1891657828001464e-86
+mlp|geo,mlp|all,Geometry alone vs raw + expert (MLP),5,-0.005462122209166908,0.0010983116312837868,0,5,2.851050911253208e-14
+mlp|geo_high,mlp|all,geo+expert vs raw+expert (MLP),5,0.011182179554908744,0.0012205756253601896,5,0,3.675820102255081e-168
+widedeep|geo_high,mlp|geo_high,"Hybrid 1: wide&deep vs plain MLP, same inputs",5,-0.00917946216320691,0.0008381781843517994,0,5,1.1345455538086567e-115
+stack|geo_high,mlp|geo_high,Hybrid 2: stacking vs MLP,5,0.0083844384533867,0.0007848582181485645,5,0,0.0
+stack|geo_high,xgboost|geo_high,Hybrid 2: stacking vs XGB,5,0.012396766374098788,0.00014718407104279566,5,0,0.0
+stack|geo_high,average|geo_high,Hybrid 2: learned stacking vs naive average,5,0.00020404379582341647,3.949873374759531e-05,5,0,4.6495768541331335e-10
+stack|all,mlp|all,Hybrid 2 on the paper's features: stacking vs MLP,5,0.0044304853929519,0.0004693450033270007,5,0,5.700480145335879e-215
