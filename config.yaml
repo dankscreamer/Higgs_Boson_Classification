@@ -1,0 +1,39 @@
+# Single source of truth for the benchmark. Every run copies this file into its results folder.
+seed: 42
+
+data:
+  url: https://archive.ics.uci.edu/static/public/280/higgs.zip   # UCI dataset 280
+  raw_path: data/raw/higgs.zip   # override with: scripts/prepare_data.py --zip /path/to/higgs.zip
+  array_path: data/processed/higgs_f32.npy   # 11M x 29 float32, column 0 = label
+  splits_dir: data/splits
+  n_test: 500000          # last 500k rows = the held-out test set used by Baldi et al. (2014)
+  subset_size: 250000     # train+val budget, stratified-sampled from the first 10.5M rows
+  val_fraction: 0.1       # carved out of the subset, stratified; used for early stopping only
+
+feature_sets: [low, geo, high, all]   # low = 21 raw, geo = 40 rotation-invariant + pairwise angles, high = 7 expert masses, all = 28
+models: [logreg, xgboost, mlp]
+
+logreg:
+  C: 1.0
+  max_iter: 1000
+
+xgboost:
+  n_estimators: 2000
+  learning_rate: 0.1
+  max_depth: 6
+  subsample: 0.8
+  colsample_bytree: 0.8
+  early_stopping_rounds: 50
+  n_jobs: -1
+
+mlp:
+  hidden: [256, 256, 256]
+  dropout: 0.1
+  lr: 0.001
+  weight_decay: 0.00001
+  batch_size: 1024
+  max_epochs: 50
+  patience: 6             # epochs without val ROC AUC improvement before stopping
+  device: auto            # auto | cpu | mps | cuda
+
+output_dir: results

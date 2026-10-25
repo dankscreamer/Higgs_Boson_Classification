@@ -1,0 +1,9 @@
+.venv/
+data/
+results/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+!results/
+results/**/test_predictions.npz
