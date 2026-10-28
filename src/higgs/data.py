@@ -48,7 +48,7 @@ FEATURE_SETS: dict[str, list[int]] = {
 
 # Engineered sets computed from the raw columns (see higgs/physics.py).
 #   geo      = rotation-invariant low-level features + pairwise |dphi| and dR (40, no masses)
-#   geo_high = geo + the 7 expert masses as the LAST 7 columns (47); the wide&deep hybrid relies on that order
+#   geo_high = geo + the 7 expert masses as the last 7 columns (47)
 ENGINEERED_SETS = ["geo", "geo_high"]
 ALL_FEATURE_SETS = list(FEATURE_SETS) + ENGINEERED_SETS
 
@@ -114,8 +114,8 @@ def make_split_indices(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Stratified sample of `subset_size` rows from the pool, then stratified train/val/cal splits.
 
-    val is used only for early stopping; cal only for post-hoc calibration and the stacking meta-learner,
-    so neither calibrator nor stacker ever sees data that also steered training.
+    val is used only for early stopping; cal only for post-hoc calibration, so the calibrators never
+    see data that also steered training.
     Returns sorted row indices into the pool. `subset_size >= len(pool_labels)` uses the whole pool.
     """
     idx = np.arange(len(pool_labels))

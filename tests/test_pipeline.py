@@ -135,14 +135,10 @@ def test_models_learn_a_nonlinear_signal(model):
     rng = np.random.default_rng(3)
     X = rng.normal(size=(6_000, 5)).astype(np.float32)
     y = ((X[:, 0] * X[:, 1] + X[:, 2]) > 0).astype(np.int8)
-    mlp = {"hidden": [32, 32], "dropout": 0.0, "lr": 0.01, "weight_decay": 0.0, "batch_size": 256,
-           "max_epochs": 15, "patience": 4, "device": "cpu"}
     params = {
         "logreg": {"C": 1.0, "max_iter": 500},
         "xgboost": {"n_estimators": 200, "learning_rate": 0.1, "max_depth": 4, "subsample": 1.0,
                     "colsample_bytree": 1.0, "early_stopping_rounds": 20, "n_jobs": 2},
-        "mlp": mlp,
-        "widedeep": {**mlp, "n_wide": 2, "wide_hidden": 8},   # last 2 columns take the wide path
     }[model]
     fitted = FITTERS[model](X[:5_000], y[:5_000], X[5_000:], y[5_000:], params, seed=0)
     auc = evaluate(y[5_000:], fitted.predict_proba(X[5_000:]))["roc_auc"]
@@ -182,29 +178,3 @@ def test_calibrators_fix_a_miscalibrated_model_without_changing_ranking():
         assert expected_calibration_error(y[20_000:], fixed) < raw_ece / 3, name
         if name == "platt":
             assert abs(roc_auc_score(y[20_000:], fixed) - roc_auc_score(y[20_000:], p_bad[20_000:])) < 1e-5  # clipping near 0 adds a few ties
-
-
-def test_stacker_weights_the_informative_model():
-    from higgs.hybrid import Stacker, average
-    rng = np.random.default_rng(9)
-    y = (rng.random(20_000) < 0.5).astype(int)
-    good = 1 / (1 + np.exp(-(2 * (y - 0.5) * 3 + rng.normal(size=y.size))))
-    noise = rng.random(y.size)
-    st = Stacker(["good", "noise"]).fit({"good": good, "noise": noise}, y)
-    w = st.weights()
-    assert w["good"] > 0.5 and abs(w["noise"]) < 0.2
-    assert st.predict({"good": good, "noise": noise}).shape == y.shape
-    np.testing.assert_allclose(average({"a": good, "b": noise}, ["a", "b"]), (good + noise) / 2)
-
-
-@pytest.mark.parametrize("variant", [{}, {"batchnorm": False}, {"activation": "tanh", "init": "default"},
-                                     {"hidden": [16]}])
-def test_mlp_variants_and_widedeep_build_and_run(variant):
-    import torch
-    from higgs.models import MLP, WideDeep
-    p = {"hidden": [32, 32], "dropout": 0.1, **variant}
-    out = MLP(10, p)(torch.randn(8, 10))
-    assert out.shape == (8,)
-    wd = WideDeep(10, {**p, "n_wide": 3, "wide_hidden": 4})
-    assert wd(torch.randn(8, 10)).shape == (8,)
-    assert wd.deep[0].in_features == 7 and wd.wide[0].in_features == 3   # masses bypass the deep tower

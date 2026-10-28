@@ -5,12 +5,14 @@
 \subsection{Fixed budget: 250k events, five seeds}
 Table~\ref{tab:ml_main} reports every metric as mean$\pm$sd over five seeds. The seed-to-seed sd of
 the ROC AUC never exceeds 0.0007, and every difference cited below is significant under the paired
-DeLong test in all five seeds ($p<10^{-6}$).
+DeLong test in all five seeds ($p<10^{-6}$; Table~\ref{tab:comparisons}).
+
+\input{tables/comparisons}
 
 \textbf{RQ1, value of the expert features.} Logistic regression is close to useless on the raw
 measurements (AUC 0.596). The 7 masses lift it to 0.645, and \texttt{all} to 0.684. XGBoost reaches
 0.738 on \texttt{low} and 0.787 on \texttt{high}. Combining raw and expert features (\texttt{all},
-0.824) adds a further 0.036 over the masses alone. The expert features are therefore worth roughly
+0.823) adds a further 0.036 over the masses alone. The expert features are therefore worth roughly
 0.05--0.09 AUC to both models. Even so, the trees extract substantial information that the masses
 do not contain.
 
@@ -31,16 +33,16 @@ regression reduces it to 0.006. Fig.~\ref{fig:reliability} shows the reliability
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{reliability.png}
+\includegraphics[width=0.85\textwidth]{reliability_ml.png}
 \caption{Reliability diagrams on the 500k test events (seed~0, 250k budget, before post-hoc
-calibration). XGBoost (orange) follows the diagonal. Logistic regression (blue) bends wherever its
-linear log-odds are misspecified. MLP and hybrid curves are discussed in the Phase~2 report.}
+calibration), for the 7 expert masses (left) and the paper's 28 features (right). XGBoost (orange)
+follows the diagonal; logistic regression (blue) bends wherever its linear log-odds are misspecified.}
 \label{fig:reliability}
 \end{figure*}
 
 \textbf{Compute.} At 250k events, logistic regression trains in under 0.2\,s. Tuned XGBoost needs
 1.5\,s (\texttt{high}, 7 features) to 11.6\,s (\texttt{geo}, 40 features, depth 10). The cheapest
-strong model is XGBoost on \texttt{all} (4.8\,s, AUC 0.824).
+strong model is XGBoost on \texttt{all} (4.8\,s, AUC 0.823).
 
 \subsection{Tuning}
 Table~\ref{tab:tuning} shows that CV favours deep trees (depth 10 on \texttt{low}/\texttt{geo}, 8

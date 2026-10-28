@@ -2,6 +2,5 @@
 
 | question | A | B | ΔAUC (A−B) mean ± sd | seeds A sig. better | seeds B sig. better |
 |---|---|---|---|---|---|
-| DL vs trees on raw measurements | mlp|low | xgboost|low | 0.0463 | 1/1 | 0/1 |
-| DL vs trees on raw + expert | mlp|all | xgboost|all | 0.0173 | 1/1 | 0/1 |
-| Hybrid 2 on the paper's features: stacking vs MLP | stack|all | mlp|all | 0.0003 | 1/1 | 0/1 |
+| Trees vs linear on raw measurements | xgboost|low | logreg|low | 0.2042 | 1/1 | 0/1 |
+| Trees vs linear on raw + expert | xgboost|all | logreg|all | 0.1663 | 1/1 | 0/1 |

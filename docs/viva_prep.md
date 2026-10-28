@@ -41,8 +41,8 @@ differences between seeds come from the events, not the class balance. Indices a
 saved per seed (`data/splits/*.json`).
 
 **Q: Why four splits (train/val/cal/test)?**
-train fits models. val is used *only* for early stopping. cal is used *only* for post-hoc calibration
-and the stacking meta-learner, so the calibrators never see data that also steered training. test
+train fits models. val is used *only* for XGBoost's early stopping. cal is used *only* for post-hoc
+calibration, so the calibrators never see data that also steered training. test
 (the last 500k rows, as in Baldi et al.) is touched once per model, at the end.
 
 **Q: What data-quality problems did you find?**
@@ -76,7 +76,7 @@ Partly. φ's scale is recoverable (uniform on [−π, π]); η's is not, but its
 close to 1, so ΔR is exact in φ and approximate in η. Stated as a limitation.
 
 **Q: Why scale features, and why only on training data?**
-Logistic regression's L2 penalty and the MLP's optimisation assume comparable scales. Fitting the
+Logistic regression's L2 penalty and its optimiser assume comparable scales. Fitting the
 scaler on val/test would leak their statistics into training. Trees are scale-invariant.
 
 ## 4. ML theory (Phase 1)
@@ -131,127 +131,46 @@ Correct: tiny differences become "significant". That's why we report the *effect
 CI) and seed-to-seed sd, and only call a difference meaningful when it is consistent across seeds and
 larger than the seed-to-seed noise.
 
-## 6. Deep learning (Phase 2)
-
-**Q: Justify the MLP architecture.**
-3×256, BatchNorm, ReLU, dropout 0.1, Glorot init, Adam 1e-3, batch 1024, early stopping on val AUC
-(patience 6) with best weights restored, LR halved on plateau. Big enough to compose pairwise
-interactions into mass-like features; small enough to train in seconds at 250k. Every choice is
-ablated.
-
-**Q: Derive Glorot initialisation.**
-Forward: Var[z] = n_in Var[W] Var[x]; backward: Var[∂x] = n_out Var[W] Var[∂z]. Keeping both at 1
-needs n_in Var[W] = 1 and n_out Var[W] = 1; the compromise is Var[W] = 2/(n_in + n_out), i.e.
-U[−√(6/(n_in+n_out)), +√(6/(n_in+n_out))]. Derived for tanh-like units without normalisation.
-
-**Q: Did Glorot init matter in your network?**
-Barely. With BatchNorm, Glorot vs PyTorch's default changes AUC by ≤ 0.002, because BatchNorm
-re-standardises every layer. Without BatchNorm (ReLU), default init loses a bit more (−0.006 vs
-−0.004). In Glorot & Bengio's own setting (tanh, no BN), Glorot was *not* better at depth 3 (−0.007
-vs −0.005). Their effect shows up in deep nets trained with plain SGD; ours is 3 layers with Adam,
-whose per-parameter step sizes compensate for a mis-scaled start. Honest answer: theory predicts a
-depth-dependent effect, and at our depth it's within noise.
-
-**Q: What does BatchNorm do?**
-Standardises each layer's pre-activations with mini-batch mean/variance, then learns a scale γ and
-shift β; running averages at test time. Smooths the loss landscape (Santurkar et al.), allows larger
-learning rates, and adds mild noise (regularisation).
-
-**Q: What does dropout do?**
-Randomly zeroes units with probability p during training (rescaling by 1/(1−p)); approximates
-averaging an ensemble of thinned networks and discourages co-adaptation.
-
-**Q: Why is the MLP less calibrated than XGBoost?**
-Neural networks trained to minimise cross-entropy with early stopping on AUC (not log loss) and with
-batch-statistics noise often end up slightly over- or under-confident (Guo et al. 2017). Platt
-scaling on the cal split fixes most of it.
-
-**Q: Why not CNNs/Transformers?**
-The input is a fixed-length vector of 21–47 physical quantities with no grid or sequence
-structure; an MLP is the natural architecture and what Baldi et al. used. Set/graph networks over
-particles would be the next step (Energy Flow Networks), noted as future work.
-
-## 7. Hybrid approach
-
-**Q: What is your hybrid and why is it justified (not just "combining models")?**
-Two hybrids, each motivated by a measurement and each with a control:
-1. *Physics-informed wide & deep*: the 7 expert masses bypass the deep tower and join at the last
-   hidden layer; the tower sees only the 40 geometric features. Control: a plain MLP on the same 47
-   inputs, so any difference is architectural.
-2. *Stacking*: logistic regression on the XGBoost and MLP logits, fit on the cal split (unseen by
-   either base model). Motivation: the two models have similar AUC but different inductive biases and
-   different calibration. Control: plain averaging.
-
-**Q: Why fit the stacker on the cal split and not on val?**
-Both base models early-stop on val, so their val predictions are slightly optimistic; a stacker fit
-there would over-trust them. cal is untouched by either base model.
-
-**Q: Why combine in logit space?**
-If each model's logit approximates the log-likelihood ratio plus noise, the optimal combination is a
-weighted sum of logits; averaging probabilities fixes equal weights in the wrong space.
-
-## 8. Engineering and reproducibility
+## 6. Engineering and reproducibility
 
 **Q: How would someone reproduce your results?**
 `make setup && make data && make reproduce`. Every hyperparameter lives in `config.yaml`; per-seed
 subset indices are saved; results folders contain the config, manifest and run info (hardware,
-versions). 19 unit tests (`make test`, under 10 s) cover splits, invariance, metrics, DeLong,
+versions). 12 unit tests (`make test`, under 10 s) cover splits, invariance, metrics, DeLong,
 calibration and models.
 
-**Q: Any platform issues?**
-On macOS, xgboost and PyTorch each bundle OpenMP; with both loaded, multi-threaded PyTorch CPU ops
-deadlock. We found it (stack sample showed a hang in `randperm`), pinned PyTorch to one CPU thread,
-and trained the MLP on the Apple GPU (MPS). It only affects wall-clock comparisons.
-
-## 9. Results you must know cold
+## 7. Results you must know cold
 
 All at 250k events, mean over 5 seeds, test = 500k fixed events (source: `results/summary/`).
 
-| Features | LogReg | XGBoost | MLP | Stack |
-|---|---|---|---|---|
-| low (21 raw) | 0.596 | 0.738 | 0.760 | 0.766 |
-| geo (40, no masses) | 0.630 | 0.801 | 0.826 | 0.831 |
-| high (7 masses) | 0.645 | 0.787 | 0.793 | 0.793 |
-| all (paper's 28) | 0.684 | 0.824 | 0.831 | 0.835 |
-| geo + high (47) | 0.692 | 0.838 | 0.842 | **0.851** |
+| Features | LogReg | XGBoost |
+|---|---|---|
+| low (21 raw) | 0.596 | 0.738 |
+| geo (40, no masses) | 0.630 | 0.801 |
+| high (7 masses) | 0.645 | 0.787 |
+| all (paper's 28) | 0.684 | 0.823 |
+| geo + high (47) | 0.692 | **0.838** |
 
-Full 10.5M pool (1 seed): MLP on low 0.846, XGBoost on all 0.851, MLP on all 0.868.
+Calibration (ECE): XGBoost 0.004–0.006 raw. LogReg on `high` 0.048 raw → 0.048 Platt → 0.006 isotonic.
+Compute (200k training events): LogReg < 0.2 s; XGBoost 1.5–11.6 s; best value XGBoost on `all`, 4.8 s.
+Scaling: LogReg flat from 50k to 10.5M; XGBoost on `low` 0.699 → 0.738 → 0.765 → 0.800, on `all` → 0.851.
 
 **Q: What is your single most important finding?**
 Encoding a physical symmetry beats hand-built expert features. `geo` (pairwise angles and ΔR, no
-masses) outperforms the 7 expert masses for both XGBoost (+0.014) and the MLP (+0.033), in every
-seed; geometry + masses beats the paper's feature set for every model.
+masses) outperforms the 7 expert masses for XGBoost (+0.014) and lifts it +0.064 over raw features,
+in every seed; geometry + masses beats the paper's feature set (+0.015).
 
-**Q: Does deep learning beat trees?**
-It depends on data. At 50k events XGBoost wins on the richer feature sets; from 250k the MLP wins on
-every feature set, and its lead on raw features grows from +0.007 (50k) to +0.023 (250k) to +0.05
-(1M, 10.5M). At 10.5M the MLP on raw features nearly matches XGBoost given the expert masses
-(0.846 vs 0.851), which reproduces Baldi et al.
-
-**Q: Your wide & deep hybrid lost. Why include it?**
-It tests a specific physics hypothesis (expert features help most as a shortcut to the output)
-against a matched control (plain MLP, same 47 inputs). It lost by 0.009 in every seed, which tells us
-the masses are most useful *mixed with* geometry inside the network. A negative result with a proper
-control is evidence, not a failure.
-
-**Q: Does stacking really help, or is it just averaging?**
-Ranking: almost all of the gain over the base models comes from combining two different models;
-plain averaging gets within 0.0002 at 250k (0.0017 at 1M). What the learned stacker adds is
-calibration with no post-hoc step (ECE 0.004) and adaptive weights: XGBoost/MLP weights go from
-≈0.5/0.45 at 250k to 0.30/0.68 at 1M to 0.15/0.91 at 10.5M, i.e. it learns to trust the network
-as it improves. Its edge over the MLP shrinks to +0.0003 at 10.5M.
-
-**Q: What would you change with more time?**
-Dropout 0.3 (the ablation shows +0.002 to +0.004, and that run was still improving at the 50-epoch
-cap); a longer epoch budget at 1M+ (MLPs stopped at the cap); more seeds at 10.5M; a set network
-over the six physics objects (permutation invariance on top of rotation invariance).
+**Q: Why does logistic regression stay flat as data grows?**
+It is bias-limited, not variance-limited: a linear decision boundary is the wrong shape for this
+problem, and more data only pins down the wrong shape more precisely. XGBoost is variance-limited at
+small budgets, so it keeps improving.
 
 **Q: Which features matter most?**
-m_bb for XGBoost and the MLP, m_WWbb for logistic regression. The SHAP dependence plot shows m_bb in
-its peak (h → bb̄) pushing towards signal and m_jjj near the top-quark mass pushing towards
-background. The model recovers the physics without being told.
+m_bb for XGBoost, m_WWbb for logistic regression. The SHAP dependence plot shows m_bb in its peak
+(h → bb̄) pushing towards signal and m_jjj near the top-quark mass pushing towards background. The
+model recovers the physics without being told.
 
-**Q: Why are your full-data numbers lower than Baldi et al. (0.885)?**
-Smaller network (3×256 vs 5×300), 50-epoch cap (our runs were still improving), no pre-training or
-extensive tuning at that scale, and one seed. Our claims are about *relative* behaviour under equal
-budgets, which is what the brief asks for.
+**Q: What would you change with more time?**
+A larger tuning search (we used 12 configurations), more seeds at 1M and 10.5M (XGBoost hit its
+3000-tree cap at 10.5M, so that result is a lower bound), and an exact ΔR once η's original scale is
+known.

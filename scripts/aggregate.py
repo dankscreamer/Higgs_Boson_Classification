@@ -20,20 +20,14 @@ METRICS = ["roc_auc", "pr_auc", "accuracy", "log_loss", "brier", "ece", "ece_pla
            "train_seconds"]
 # (a, b, question it answers): positive diff means a > b.
 COMPARISONS = [
-    ("mlp|low", "xgboost|low", "DL vs trees on raw measurements"),
-    ("mlp|geo", "xgboost|geo", "DL vs trees on geometric features"),
-    ("mlp|all", "xgboost|all", "DL vs trees on raw + expert"),
+    ("xgboost|low", "logreg|low", "Trees vs linear on raw measurements"),
+    ("xgboost|all", "logreg|all", "Trees vs linear on raw + expert"),
     ("xgboost|geo", "xgboost|low", "Feature engineering (geo) for trees"),
-    ("mlp|geo", "mlp|low", "Feature engineering (geo) for the MLP"),
-    ("mlp|geo", "mlp|high", "Geometry alone vs expert masses (MLP)"),
+    ("logreg|geo", "logreg|low", "Feature engineering (geo) for the linear model"),
     ("xgboost|geo", "xgboost|high", "Geometry alone vs expert masses (XGB)"),
-    ("mlp|geo", "mlp|all", "Geometry alone vs raw + expert (MLP)"),
-    ("mlp|geo_high", "mlp|all", "geo+expert vs raw+expert (MLP)"),
-    ("widedeep|geo_high", "mlp|geo_high", "Hybrid 1: wide&deep vs plain MLP, same inputs"),
-    ("stack|geo_high", "mlp|geo_high", "Hybrid 2: stacking vs MLP"),
-    ("stack|geo_high", "xgboost|geo_high", "Hybrid 2: stacking vs XGB"),
-    ("stack|geo_high", "average|geo_high", "Hybrid 2: learned stacking vs naive average"),
-    ("stack|all", "mlp|all", "Hybrid 2 on the paper's features: stacking vs MLP"),
+    ("xgboost|all", "xgboost|high", "Adding raw features to the masses (XGB)"),
+    ("xgboost|geo_high", "xgboost|all", "geo+expert vs raw+expert (XGB)"),
+    ("logreg|geo_high", "logreg|all", "geo+expert vs raw+expert (LogReg)"),
 ]
 
 
@@ -105,7 +99,7 @@ def main() -> None:
         (out / f"comparisons_{n}.md").write_text("\n".join(lines) + "\n")
         readme += lines + [""]
 
-    scaling = (metrics[metrics.model.isin(["logreg", "xgboost", "mlp"])]
+    scaling = (metrics[metrics.model.isin(["logreg", "xgboost"])]
                .groupby(["model", "feature_set", "subset_size"])
                .agg(n_train=("n_train", "first"), auc_mean=("roc_auc", "mean"), auc_sd=("roc_auc", "std"),
                     seconds_mean=("train_seconds", "mean"), n_seeds=("seed", "nunique")).reset_index())

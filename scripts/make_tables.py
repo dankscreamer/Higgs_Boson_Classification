@@ -15,8 +15,7 @@ RES = ROOT / "results"
 TAB = ROOT / "report" / "tables"
 FIG = ROOT / "report" / "figures"
 BUDGET = 250000
-MODEL_TEX = {"logreg": "LogReg", "xgboost": "XGBoost", "mlp": "MLP", "widedeep": "Wide\\&Deep",
-             "stack": "Stack", "average": "Average"}
+MODEL_TEX = {"logreg": "LogReg", "xgboost": "XGBoost"}
 FS_TEX = {"low": "low (21)", "geo": "geo (40)", "high": "high (7)", "all": "all (28)", "geo_high": "geo+high (47)"}
 FS_ORDER = list(FS_TEX)
 
@@ -68,15 +67,10 @@ def main() -> None:
 
     main = pd.read_csv(RES / "summary" / f"main_{BUDGET}.csv")
     n_seeds = int(main.n_seeds.max())
-    table("ml_main", f"Phase 1 (ML) results at a {BUDGET:,}-event budget: mean$\\pm$sd over {n_seeds} seeds, "
+    table("ml_main", f"Results at a {BUDGET:,}-event budget: mean$\\pm$sd over {n_seeds} seeds, "
           "all scored on the same 500k test events. ECE before and after post-hoc calibration on the cal split. "
-          "Bold: best ROC AUC within the feature set among the models in this table.",
-          "tab:ml_main", head, main_rows(main[main.model.isin(["logreg", "xgboost"])], ["logreg", "xgboost"]),
-          wide=True)
-    table("dl_main", f"Phase 2 (DL and hybrid) results at {BUDGET:,} events, mean$\\pm$sd over {n_seeds} seeds. "
-          "XGBoost repeated as the reference. Stack/Average are fit on the cal split, so post-hoc columns "
-          "do not apply.",
-          "tab:dl_main", head, main_rows(main, ["xgboost", "mlp", "widedeep", "stack", "average"]), wide=True)
+          "Bold: best ROC AUC within the feature set.",
+          "tab:ml_main", head, main_rows(main, ["logreg", "xgboost"]), wide=True)
 
     comp = pd.read_csv(RES / "summary" / f"comparisons_{BUDGET}.csv")
     table("comparisons", "Paired DeLong tests on the shared test set. $\\Delta$AUC = A$-$B (mean$\\pm$sd over "
@@ -101,27 +95,9 @@ def main() -> None:
           "tab:tuning", ["Features", "C", "CV AUC", "depth", "$\\eta$", "mcw", "subs.", "colsm.", "$\\lambda$", "CV AUC"],
           rows, wide=True)
 
-    abl = pd.read_csv(RES / "ablations" / "summary.csv")
-    rows = []
-    for v in dict.fromkeys(abl.variant):
-        cells = [esc(v)]
-        for fs in ("low", "all"):
-            r = abl[(abl.variant == v) & (abl.feature_set == fs)]
-            cells += ["--", "--"] if r.empty else [pm(r.iloc[0].auc_mean, r.iloc[0].auc_std),
-                                                    f"{r.iloc[0].delta_mean:+.4f}"]
-        r = abl[abl.variant == v].iloc[0]
-        cells += [f"{int(r.n_params):,}", f"{abl[abl.variant == v].epochs.mean():.0f}"]
-        rows.append(cells)
-    n_abl = int(pd.read_csv(RES / "ablations" / "metrics.csv").seed.nunique())
-    table("ablations", f"MLP ablations ({n_abl} seeds, {BUDGET:,} events): test ROC AUC and change vs the "
-          "baseline (3$\\times$256, ReLU, BatchNorm, dropout 0.1, Glorot init).",
-          "tab:ablations", ["Variant", "AUC (low)", "$\\Delta$", "AUC (all)", "$\\Delta$", "Params", "Epochs"], rows,
-          wide=True)
-
     sc = pd.read_csv(RES / "summary" / "scaling.csv")
     budgets = sorted(sc.subset_size.unique())
-    for name, models, fsets in (("scaling", ("logreg", "xgboost", "mlp"), ("low", "geo", "all", "geo_high")),
-                                ("scaling_ml", ("logreg", "xgboost"), FS_ORDER)):
+    for name, models, fsets in (("scaling_ml", ("logreg", "xgboost"), FS_ORDER),):
         rows = []
         for fs in fsets:
             for m in models:
@@ -136,10 +112,6 @@ def main() -> None:
               rows, wide=True)
 
     imp = pd.read_csv(RES / "interpretability" / "importance_all.csv").head(10)
-    table("importance", "Top-10 features of the \\texttt{all} set by XGBoost mean $|$SHAP$|$, with the other "
-          "models' importances.", "tab:importance", ["Feature", "XGB $|$SHAP$|$", "LogReg $|\\beta|$", "MLP $\\Delta$AUC"],
-          [[esc(r.feature), f"{r.xgb_mean_abs_shap:.3f}", f"{r.logreg_abs_coef:.3f}", f"{r.mlp_perm_auc_drop:.4f}"]
-           for r in imp.itertuples()])
     table("importance_ml", "Top-10 features of the \\texttt{all} set by XGBoost mean $|$SHAP$|$ (log-odds), with "
           "logistic-regression $|$coefficients$|$ on standardised inputs.", "tab:importance_ml",
           ["Feature", "XGB $|$SHAP$|$", "LogReg $|\\beta|$"],
@@ -160,15 +132,8 @@ def main() -> None:
         "eda_distributions.png": eda_dir / "distributions.png",
         "eda_correlation.png": eda_dir / "correlation.png",
         "eda_single_auc.png": eda_dir / "single_feature_auc.png",
-        "reliability.png": RES / f"subset{BUDGET}_seed0" / "reliability.png",
-        "roc.png": RES / f"subset{BUDGET}_seed0" / "roc.png",
-        "auc_vs_time.png": RES / f"subset{BUDGET}_seed0" / "auc_vs_train_time.png",
-        "ablation_auc.png": RES / "ablations" / "ablation_auc.png",
-        "learning_curves.png": RES / "ablations" / "learning_curves.png",
-        "importance_all.png": RES / "interpretability" / "importance_all.png",
-        "importance_geo.png": RES / "interpretability" / "importance_geo.png",
+        "reliability_ml.png": ROOT / "presentation" / "phase1_ml" / "figures" / "4_reliability.png",
         "shap_dependence.png": RES / "interpretability" / "shap_dependence_all.png",
-        "scaling.png": RES / "summary" / "scaling.png",
     }
     for dst, src in figures.items():
         if src.exists():

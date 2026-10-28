@@ -22,7 +22,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from higgs.models import make_xgb  # noqa: E402  (first: imports xgboost before torch)
+from higgs.models import make_xgb  # noqa: E402
 from higgs.data import ALL_FEATURE_SETS, load_splits  # noqa: E402
 from sklearn.linear_model import LogisticRegression  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402

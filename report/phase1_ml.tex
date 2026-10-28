@@ -200,8 +200,7 @@ recovered from the release, so $\Delta R$ is exact in $\phi$ but approximate in 
 
 \subsection{Feature sets compared}
 \texttt{low} (21 raw), \texttt{geo} (40), \texttt{high} (7 expert masses), \texttt{all}
-(low+high, 28; the set used in \cite{baldi2014searching}), and \texttt{geo+high} (47). The masses are
-placed last in \texttt{geo+high}, which the Phase~2 hybrid relies on.
+(low+high, 28; the set used in \cite{baldi2014searching}), and \texttt{geo+high} (47).
 
 %=====================================================================
 \section{Theoretical Background}\label{sec:theory}
@@ -275,7 +274,7 @@ Reported times are wall-clock training times including early stopping.
 
 \textbf{Reproducibility.} The seed, budget and every hyperparameter live in one \texttt{config.yaml}.
 Subset indices and class counts are saved per seed. \texttt{make reproduce} reruns the whole study,
-and 19 unit tests (synthetic data, under 10\,s) cover the data splits, feature invariance, metrics,
+and 12 unit tests (synthetic data, under 10\,s) cover the data splits, feature invariance, metrics,
 DeLong, calibration and models.
 
 \input{tables/tuning}

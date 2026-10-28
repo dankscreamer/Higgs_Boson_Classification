@@ -1,15 +1,9 @@
 a,b,question,n_seeds,diff_mean,diff_sd,seeds_a_better_p05,seeds_b_better_p05,max_p_value
-mlp|low,xgboost|low,DL vs trees on raw measurements,3,0.05220804557664974,0.0016425705496601437,3,0,0.0
-mlp|geo,xgboost|geo,DL vs trees on geometric features,3,0.03642012629263869,0.00047931880461888054,3,0,0.0
-mlp|all,xgboost|all,DL vs trees on raw + expert,3,0.015315201391930358,4.191359006957263e-05,3,0,0.0
+xgboost|low,logreg|low,Trees vs linear on raw measurements,3,0.1689181098359406,0.0011810985325774119,3,0,0.0
+xgboost|all,logreg|all,Trees vs linear on raw + expert,3,0.1523086609988745,0.00017504730642799827,3,0,0.0
 xgboost|geo,xgboost|low,Feature engineering (geo) for trees,3,0.05818156438860537,0.0010051618920570108,3,0,0.0
-mlp|geo,mlp|low,Feature engineering (geo) for the MLP,3,0.04239364510459431,0.000360697001508623,3,0,0.0
-mlp|geo,mlp|high,Geometry alone vs expert masses (MLP),3,0.06201755337385132,0.0003045192058309651,3,0,0.0
+logreg|geo,logreg|low,Feature engineering (geo) for the linear model,3,0.03393434059911815,7.145681801844966e-05,3,0,0.0
 xgboost|geo,xgboost|high,Geometry alone vs expert masses (XGB),3,0.031231413986100593,0.000309201939229537,3,0,0.0
-mlp|geo,mlp|all,Geometry alone vs raw + expert (MLP),3,0.007564886716931933,0.0001503659290187947,3,0,8.213849646817343e-73
-mlp|geo_high,mlp|all,geo+expert vs raw+expert (MLP),3,0.016978085172652202,4.72265736051568e-05,3,0,0.0
-widedeep|geo_high,mlp|geo_high,"Hybrid 1: wide&deep vs plain MLP, same inputs",3,-0.005684410169899031,0.0007119765268160863,0,3,2.601768546861471e-66
-stack|geo_high,mlp|geo_high,Hybrid 2: stacking vs MLP,3,0.0023289571006318197,6.120080180927624e-05,3,0,2.4346162127344152e-178
-stack|geo_high,xgboost|geo_high,Hybrid 2: stacking vs XGB,3,0.01838153574254379,0.00031759840589404693,3,0,0.0
-stack|geo_high,average|geo_high,Hybrid 2: learned stacking vs naive average,3,0.001673073751555491,3.652663823945607e-05,3,0,1.6384768640511457e-141
-stack|all,mlp|all,Hybrid 2 on the paper's features: stacking vs MLP,3,0.0017661518647188086,0.00012605468289666804,3,0,1.7591749272440493e-116
+xgboost|all,xgboost|high,Adding raw features to the masses (XGB),3,0.04477145216987699,9.274610781915219e-05,3,0,0.0
+xgboost|geo_high,xgboost|all,geo+expert vs raw+expert (XGB),3,0.01624070792267059,0.00037659526945867046,3,0,0.0
+logreg|geo_high,logreg|all,geo+expert vs raw+expert (LogReg),3,0.007608942249537269,7.920549749635684e-05,3,0,1.7838260494557016e-143

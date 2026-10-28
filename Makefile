@@ -1,6 +1,6 @@
 PY := .venv/bin/python
 
-.PHONY: setup data eda bench test clean tune ablations interpret aggregate reproduce
+.PHONY: setup data eda bench test clean tune interpret aggregate reproduce
 
 setup:
 	python3 -m venv .venv
@@ -23,9 +23,6 @@ clean:
 
 tune:
 	$(PY) scripts/tune.py
-
-ablations:
-	$(PY) scripts/run_ablations.py
 
 interpret:
 	$(PY) scripts/interpret.py

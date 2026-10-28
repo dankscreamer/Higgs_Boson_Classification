@@ -9,14 +9,14 @@ data:
   n_test: 500000          # last 500k rows = the held-out test set used by Baldi et al. (2014)
   subset_size: 250000     # train+val+cal budget, stratified-sampled from the first 10.5M rows
   val_fraction: 0.1       # stratified; early stopping only
-  cal_fraction: 0.1       # stratified; post-hoc calibration and the stacking meta-learner only
+  cal_fraction: 0.1       # stratified; post-hoc calibration only
 
 # low = 21 raw | geo = 40 rotation-invariant + pairwise angles (no masses) | high = 7 expert masses
 # all = low + high (28) | geo_high = geo + high (47; masses are the last 7 columns)
 feature_sets: [low, geo, high, all, geo_high]
-models: [logreg, xgboost, mlp, widedeep]
+models: [logreg, xgboost]
 
-# Hyperparameters chosen by scripts/tune.py (stratified 3-fold CV on the seed-42 training split).
+# Hyperparameters chosen by scripts/tune.py (stratified 3-fold CV on the seed-0 training split).
 # When the file exists, its per-(model, feature set) values override the defaults below.
 tuned_params: results/tuning/best_params.json
 
@@ -34,41 +34,6 @@ xgboost:
   reg_lambda: 1.0
   early_stopping_rounds: 50
   n_jobs: -1
-
-mlp:
-  hidden: [256, 256, 256]
-  activation: relu        # relu | tanh
-  batchnorm: true
-  init: xavier            # xavier (Glorot & Bengio 2010) | default (PyTorch's Kaiming-uniform)
-  dropout: 0.1
-  lr: 0.001
-  weight_decay: 0.00001
-  batch_size: 1024
-  max_epochs: 50
-  patience: 6             # epochs without val ROC AUC improvement before stopping
-  device: auto            # auto | cpu | mps | cuda
-
-# Hybrid 1, physics-informed wide & deep: the deep tower sees the geometric features, and the 7 expert
-# masses join at the last hidden layer (the "wide" path). Only defined where the masses are the last 7 columns.
-widedeep:
-  feature_sets: [geo_high]
-  n_wide: 7
-  hidden: [256, 256, 256]
-  wide_hidden: 32         # small projection of the expert masses before the merge
-  activation: relu
-  batchnorm: true
-  init: xavier
-  dropout: 0.1
-  lr: 0.001
-  weight_decay: 0.00001
-  batch_size: 1024
-  max_epochs: 50
-  patience: 6
-  device: auto
-
-# Hybrid 2, stacking: a logistic meta-learner on the base models' logits, fit on the cal split.
-stacking:
-  base: [xgboost, mlp]
 
 calibration_bins: 15
 output_dir: results

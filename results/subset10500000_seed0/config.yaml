@@ -14,7 +14,6 @@ feature_sets:
 models:
 - logreg
 - xgboost
-- mlp
 tuned_params: results/tuning/best_params.json
 logreg:
   C: 1.0
@@ -29,43 +28,5 @@ xgboost:
   reg_lambda: 1.0
   early_stopping_rounds: 50
   n_jobs: -1
-mlp:
-  hidden:
-  - 256
-  - 256
-  - 256
-  activation: relu
-  batchnorm: true
-  init: xavier
-  dropout: 0.1
-  lr: 0.001
-  weight_decay: 1.0e-05
-  batch_size: 1024
-  max_epochs: 50
-  patience: 6
-  device: auto
-widedeep:
-  feature_sets:
-  - geo_high
-  n_wide: 7
-  hidden:
-  - 256
-  - 256
-  - 256
-  wide_hidden: 32
-  activation: relu
-  batchnorm: true
-  init: xavier
-  dropout: 0.1
-  lr: 0.001
-  weight_decay: 1.0e-05
-  batch_size: 1024
-  max_epochs: 50
-  patience: 6
-  device: auto
-stacking:
-  base:
-  - xgboost
-  - mlp
 calibration_bins: 15
 output_dir: results

@@ -1,9 +1,0 @@
-A compact MLP with BatchNorm and dropout beats tuned XGBoost on every representation from a
-250k-event budget upwards; at 50k, trees still win on the richer feature sets. Its advantage grows with data and is largest on raw
-measurements: on the full pool, the MLP on 21 raw features nearly matches trees given the
-physicists' masses, reproducing Baldi \emph{et al.} Ablations show that depth and dropout matter
-most, BatchNorm helps modestly, and initialisation is immaterial once BatchNorm is used. Of two
-hybrids motivated by Phase~1 measurements, the physics-informed wide \& deep network underperforms
-its matched control, an informative negative result. The stacked XGBoost+MLP ensemble beats both of
-its base models at every budget, is the best model overall (0.851 at 250k), and is calibrated without
-a post-hoc step. Its weights shift towards the network as data grow.
